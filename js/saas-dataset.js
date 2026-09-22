@@ -90,3 +90,20 @@ export function setSaasRun(run) {
 export function getSaasRun() {
   return lastRun;
 }
+
+// The same generator with the recent-signup bump switched off, reused for
+// the employee-tenure example on the closing slide: tenures are still
+// exponential and still censored by a linearly decreasing observation
+// window, but a company's headcount is not surging the way the customer
+// base is.
+export function buildTenureDataset(n, rate) {
+  return buildDataset(n, rate, 0);
+}
+
+// The median you would get by treating everyone still employed as if they
+// had left today — the naive answer the closing slide contrasts against.
+export function naiveMedianTime(rows) {
+  const times = rows.map((r) => r.time).sort((a, b) => a - b);
+  const mid = times.length >> 1;
+  return times.length % 2 ? times[mid] : (times[mid - 1] + times[mid]) / 2;
+}

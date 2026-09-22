@@ -26,3 +26,14 @@ export function kaplanMeierSteps(rows) {
     return step;
   });
 }
+
+// Where a step curve first falls to 50% — the median survival time. Null
+// if it never gets there: with enough censoring the estimate simply does
+// not reach 50% inside the observation window, and a median that cannot
+// be read off the data should not be invented.
+export function medianFromSteps(steps) {
+  for (const [time, survival] of steps) {
+    if (survival <= 0.5) return time;
+  }
+  return null;
+}
