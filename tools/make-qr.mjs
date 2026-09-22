@@ -11,7 +11,6 @@ import { writeFileSync } from "node:fs";
 import QRCode from "qrcode";
 
 const TARGETS = {
-  linkedin: "https://www.linkedin.com/in/alban-king/",
   careers: "https://softlandia.com/careers",
 };
 

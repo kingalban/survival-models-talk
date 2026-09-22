@@ -1,23 +1,25 @@
 // --- SCRIPT ANNOTATION [slide:about-and-hiring] ---
-// The closing "who I am, and who we're hiring" slide: the speaker's
-// name, and two scannable QR codes each shown next to its own
-// written-out URL — one for linkedin.com/in/alban-king, one for
-// softlandia.com/careers, labelled "we're hiring" and naming the role
-// being advertised: Applied AI Software Engineer, "Softlandia, Finland.
-// Full-stack role building production AI systems." The codes are
-// generated ahead of time and baked into the deck rather than fetched or
-// rendered at runtime, so the standalone build still opens with no
-// network. Alongside them, a small worked example on employee tenure,
-// framed as the kind of statistic a large employer might publish rather
-// than as anything about the speaker's own company — "Have you seen this
-// type of statistic?" — with the data generated the same way as the
-// customer lifetimes but with no recent-signup bump, since headcount is
-// not surging the way a customer base is. A compact survival chart shows
-// the naive curve in red and the Kaplan-Meier curve in blue against a
-// dashed 50% line, with a tick dropped from each crossing, and
-// underneath it the two numbers those crossings give: the naive median
-// tenure, which counts everyone still employed as if they left today,
-// and the Kaplan-Meier median, which does not.
+// The closing "who I am, and who we're hiring" slide: the speaker's name
+// centred at the top of the left-hand column, and under it a scannable
+// QR code for softlandia.com/careers shown next to that written-out URL,
+// labelled "we're hiring" and naming the role being advertised: Applied
+// AI Software Engineer, "Softlandia, Finland. Full-stack role building
+// production AI systems." The code is generated ahead of time and baked
+// into the deck rather than fetched or rendered at runtime, so the
+// standalone build still opens with no network. The speaker's LinkedIn,
+// linkedin.com/in/alban-king, runs along the bottom of the slide as a
+// plain link rather than a second code. Alongside them, a small worked
+// example on employee tenure, framed as the kind of statistic a large
+// employer might publish rather than as anything about the speaker's own
+// company — "Have you seen this type of statistic?" — with the data
+// generated the same way as the customer lifetimes but with no
+// recent-signup bump, since headcount is not surging the way a customer
+// base is. A compact survival chart shows the naive curve in red and the
+// Kaplan-Meier curve in blue against a dashed 50% line, with a tick
+// dropped from each crossing, and underneath it the two numbers those
+// crossings give: the naive median tenure, which counts everyone still
+// employed as if they left today, and the Kaplan-Meier median, which
+// does not.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import { qrCodes } from "../js/qr-codes.js";
@@ -39,6 +41,7 @@ const MARGIN = { top: 14, right: 16, bottom: 30, left: 40 };
 // five-year window (at rate 0.4 with n=150 it was defined in 4000 out of
 // 4000 simulated runs — the slide still handles the miss, but a live talk
 // should not be rolling dice on whether its punchline exists).
+const LINKEDIN_URL = "https://www.linkedin.com/in/alban-king/";
 const QR_SIZE = 108;
 const N_EMPLOYEES = 150;
 const TENURE_RATE = 0.4;
@@ -84,12 +87,11 @@ export default {
     const stillHere = rows.filter((r) => !r.event).length;
 
     stage.innerHTML = `
-      <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 0.4rem;">
-        Alban King
-      </h2>
       <div style="display:flex; align-items:flex-start; justify-content:center; gap:2.6rem; flex-wrap:wrap;">
-        <div style="display:flex; flex-direction:column; gap:1.6rem;">
-          ${card("linkedin.com/in/alban-king", "linkedin", qrCodes.linkedin)}
+        <div style="display:flex; flex-direction:column; align-items:center; gap:1.4rem;">
+          <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin:0;">
+            Alban King
+          </h2>
           ${card("softlandia.com/careers", "we're hiring", qrCodes.careers, ROLE_HTML)}
         </div>
         <div style="text-align:center;">
@@ -119,6 +121,12 @@ export default {
             </div>
           </div>
         </div>
+      </div>
+      <div style="margin-top:1.8rem; text-align:center;">
+        <a href="${LINKEDIN_URL}" target="_blank" rel="noreferrer"
+           class="accent-blue" style="font-family:var(--font-mono); font-size:0.95rem;">
+          linkedin.com/in/alban-king
+        </a>
       </div>
     `;
 
