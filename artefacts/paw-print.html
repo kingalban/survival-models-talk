@@ -30,9 +30,10 @@
 <body>
 
 <h1>Paw print — artefact harness</h1>
-<p class="sub">The artefact renders itself and owns its own stamp animation; the buttons are
-ordinary page controls calling <code>paw.press()</code> and <code>paw.reset()</code>. The row
-underneath is a trail: alternating left and right paws, each leaning its own way.</p>
+<p class="sub">Flat solid fills only — no gradients, outlines or highlights. The artefact renders itself
+and owns its own stamp animation; the buttons are ordinary page controls calling
+<code>paw.press()</code> and <code>paw.reset()</code>. The row underneath is a trail:
+alternating left and right paws, each leaning its own way, with the beige disc off.</p>
 
 <div class="controls">
   <button class="primary" id="press">Press</button>
@@ -69,6 +70,7 @@ underneath is a trail: alternating left and right paws, each leaning its own way
       size: 78,
       side: right ? "right" : "left",
       angle: right ? 16 : -16,
+      disc: false,
     });
     p.el.style.transform = `translateY(${right ? 16 : -8}px)`;
     trail.appendChild(p.el);
