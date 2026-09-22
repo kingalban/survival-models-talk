@@ -1,25 +1,26 @@
 // --- SCRIPT ANNOTATION [slide:about-and-hiring] ---
-// The closing "who I am, and who we're hiring" slide: the speaker's name
-// centred at the top of the left-hand column, and under it a scannable
-// QR code for softlandia.com/careers shown next to that written-out URL,
-// labelled "we're hiring" and naming the role being advertised: Applied
-// AI Software Engineer, "Softlandia, Finland. Full-stack role building
-// production AI systems." The code is generated ahead of time and baked
-// into the deck rather than fetched or rendered at runtime, so the
-// standalone build still opens with no network. The speaker's LinkedIn,
-// linkedin.com/in/alban-king, runs along the bottom of the slide as a
-// plain link rather than a second code. Alongside them, a small worked
-// example on employee tenure, framed as the kind of statistic a large
-// employer might publish rather than as anything about the speaker's own
-// company — "Have you seen this type of statistic?" — with the data
-// generated the same way as the customer lifetimes but with no
-// recent-signup bump, since headcount is not surging the way a customer
-// base is. A compact survival chart shows the naive curve in red and the
-// Kaplan-Meier curve in blue against a dashed 50% line, with a tick
-// dropped from each crossing, and underneath it the two numbers those
-// crossings give: the naive median tenure, which counts everyone still
-// employed as if they left today, and the Kaplan-Meier median, which
-// does not.
+// The closing "who I am, and who we're hiring" slide: a hiring panel on
+// the left, built to the same width as the graph on the right so the two
+// halves carry equal weight: a "we're hiring" label, the role being
+// advertised in large type — Applied AI Software Engineer, "Softlandia,
+// Finland. Full-stack role building production AI systems." — and under
+// it a scannable QR code for softlandia.com/careers beside that
+// written-out URL. The code is generated ahead of time and baked into
+// the deck rather than fetched or rendered at runtime, so the standalone
+// build still opens with no network. Along the bottom of the slide, in
+// small type rather than as a title, the speaker's name sits to the left
+// of their LinkedIn, linkedin.com/in/alban-king, which is a plain link
+// rather than a second code. Alongside them, a small worked example on
+// employee tenure, framed as the kind of statistic a large employer
+// might publish rather than as anything about the speaker's own company
+// — "Have you seen this type of statistic?" — with the data generated
+// the same way as the customer lifetimes but with no recent-signup bump,
+// since headcount is not surging the way a customer base is. A compact
+// survival chart shows the naive curve in red and the Kaplan-Meier curve
+// in blue against a dashed 50% line, with a tick dropped from each
+// crossing, and underneath it the two numbers those crossings give: the
+// naive median tenure, which counts everyone still employed as if they
+// left today, and the Kaplan-Meier median, which does not.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import { qrCodes } from "../js/qr-codes.js";
@@ -42,41 +43,35 @@ const MARGIN = { top: 14, right: 16, bottom: 30, left: 40 };
 // 4000 simulated runs — the slide still handles the miss, but a live talk
 // should not be rolling dice on whether its punchline exists).
 const LINKEDIN_URL = "https://www.linkedin.com/in/alban-king/";
-const QR_SIZE = 108;
+const QR_SIZE = 124;
 const N_EMPLOYEES = 150;
 const TENURE_RATE = 0.4;
 
 const formatYears = (t) => (t === null ? "not reached" : `${t.toFixed(1)}y`);
 
-// A scannable code over its own URL: the room can scan it, and anyone
-// watching a recording can still read and type the address.
-function card(url, label, qrSvg, extraHtml = "") {
+// The hiring panel is built to the same width as the chart beside it, so
+// the two halves of the closing slide carry equal weight rather than the
+// job ad reading as a footnote to the graph.
+function hiringPanel(qrSvg) {
   return `
-    <div style="display:flex; align-items:center; gap:0.9rem;">
-      <div style="width:${QR_SIZE}px; background:#fff; padding:6px; border-radius:8px; flex:none;">
-        ${qrSvg}
+    <div style="width:${WIDTH}px; max-width:100%; text-align:left;">
+      <div class="accent-blue" style="font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase;">
+        we're hiring
       </div>
-      <div style="text-align:left;">
-        <div class="accent-blue" style="font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase;">
-          ${label}
+      <div class="accent-yellow" style="margin-top:0.5rem; font-size:1.8rem; font-weight:600; line-height:1.2;">
+        Applied AI Software Engineer
+      </div>
+      <div style="margin-top:0.5rem; font-size:1.15rem; line-height:1.4;">
+        Softlandia, Finland. Full-stack role building production AI systems.
+      </div>
+      <div style="display:flex; align-items:center; gap:1.1rem; margin-top:1.4rem;">
+        <div style="width:${QR_SIZE}px; background:#fff; padding:7px; border-radius:8px; flex:none;">
+          ${qrSvg}
         </div>
-        <div style="font-family:var(--font-mono); font-size:1rem;">${url}</div>
-        ${extraHtml}
+        <div style="font-family:var(--font-mono); font-size:1.15rem;">softlandia.com/careers</div>
       </div>
     </div>`;
 }
-
-// The role currently being advertised, spelled out so the slide says what
-// the job is without anyone having to scan the code first.
-const ROLE_HTML = `
-  <div style="margin-top:0.9rem; max-width:22rem;">
-    <div class="accent-yellow" style="font-size:1.5rem; font-weight:600; line-height:1.2;">
-      Applied AI Software Engineer
-    </div>
-    <div style="margin-top:0.35rem; font-size:1.05rem; line-height:1.35; color:var(--fg);">
-      Softlandia, Finland. Full-stack role building production AI systems.
-    </div>
-  </div>`;
 
 export default {
   id: "about-and-hiring",
@@ -89,14 +84,9 @@ export default {
     const stillHere = rows.filter((r) => !r.event).length;
 
     stage.innerHTML = `
-      <div style="display:flex; align-items:flex-start; justify-content:center; gap:2.6rem; flex-wrap:wrap;">
-        <div style="display:flex; flex-direction:column; align-items:center; gap:1.4rem;">
-          <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin:0;">
-            Alban King
-          </h2>
-          ${card("softlandia.com/careers", "we're hiring", qrCodes.careers, ROLE_HTML)}
-        </div>
-        <div style="text-align:center;">
+      <div style="display:flex; align-items:center; justify-content:center; gap:3rem; flex-wrap:wrap;">
+        ${hiringPanel(qrCodes.careers)}
+        <div style="width:${WIDTH}px; max-width:100%; text-align:center;">
           <p style="margin:0 0 0.15rem; font-size:1.05rem;">
             Have you seen this type of statistic?
           </p>
@@ -124,9 +114,10 @@ export default {
           </div>
         </div>
       </div>
-      <div style="margin-top:1.8rem; text-align:center;">
-        <a href="${LINKEDIN_URL}" target="_blank" rel="noreferrer"
-           class="accent-blue" style="font-family:var(--font-mono); font-size:0.95rem;">
+      <div style="display:flex; align-items:baseline; justify-content:center; gap:1rem; margin-top:1.8rem; font-family:var(--font-mono); font-size:0.95rem;">
+        <span>Alban King</span>
+        <span style="color:var(--fg-dim);">&middot;</span>
+        <a href="${LINKEDIN_URL}" target="_blank" rel="noreferrer" class="accent-blue">
           linkedin.com/in/alban-king
         </a>
       </div>
