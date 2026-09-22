@@ -1,7 +1,3 @@
-// Hand-rolled canvas animation: the same population idea as the previous
-// slide, now with a growing bar under each top — the precursor to turning
-// this into an actual survival graph in a later slide.
-//
 // --- SCRIPT ANNOTATION [slide:spinning-top-population-graph] ---
 // The same group of spinning tops as the previous slide, but now as they
 // spin they progress to the right, drawing a bar along underneath them,
@@ -9,35 +5,14 @@
 // frame reach the right-hand side of the graph area and simply continue
 // spinning there. (parameterised and resettable via UI buttons)
 // --- END SCRIPT ANNOTATION ---
+import { createSpinningTop } from "../artefacts/spinning-top.js";
 
-const WIDTH = 820;
-const HEIGHT = 440;
-const ROW_HEIGHT = 34;
-const TRACK_LEFT = 60;
-const TRACK_RIGHT = WIDTH - 40;
+const TOP_SIZE = 54;
+const ROW_HEIGHT = 62;
+const TRACK_LEFT = TOP_SIZE / 2 + 10;
+const TRACK_WIDTH = 660;
 const DURATION_MS = 9000;
 const SURVIVE_FRACTION = 0.3; // fraction that reach the edge still spinning
-
-function drawTop(ctx, x, y, angle, tilt, color) {
-  ctx.save();
-  ctx.translate(x, y);
-  ctx.rotate(tilt);
-  ctx.strokeStyle = color;
-  ctx.lineWidth = 2;
-  ctx.beginPath();
-  ctx.moveTo(-9, 10);
-  ctx.lineTo(9, 10);
-  ctx.stroke();
-  ctx.rotate(angle * 0.05);
-  ctx.fillStyle = color;
-  ctx.beginPath();
-  ctx.moveTo(0, -14);
-  ctx.lineTo(8, 10);
-  ctx.lineTo(-8, 10);
-  ctx.closePath();
-  ctx.fill();
-  ctx.restore();
-}
 
 export default {
   id: "spinning-top-population-graph",
@@ -48,71 +23,102 @@ export default {
       </h2>
       <div class="viz-panel">
         <div>
-          <canvas id="topCanvas" width="${WIDTH}" height="${HEIGHT}"
-            style="max-width:100%; height:auto; background: var(--bg-raised); border-radius: 12px;"></canvas>
+          <div id="track" style="position: relative; width: ${TRACK_LEFT + TRACK_WIDTH + TOP_SIZE / 2}px; max-width: 100%;">
+            <div id="edgeLine" style="position: absolute; top: 0; bottom: 0; border-left: 2px dashed var(--fg-dim); opacity: 0.6;"></div>
+          </div>
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:0.6rem; font-family: var(--font-mono); color: var(--fg-dim); font-size: 0.85rem;">
-            <label>N <input id="nSlider" type="range" min="5" max="25" step="1" value="12" /></label>
+            <label>N <input id="nSlider" type="range" min="5" max="16" step="1" value="8" /></label>
             <button id="restartBtn">Restart</button>
           </div>
         </div>
       </div>
     `;
 
-    const canvas = stage.querySelector("#topCanvas");
-    const ctx = canvas.getContext("2d");
+    const track = stage.querySelector("#track");
+    const edgeLine = stage.querySelector("#edgeLine");
     const nSlider = stage.querySelector("#nSlider");
     const restartBtn = stage.querySelector("#restartBtn");
+
+    edgeLine.style.left = `${TRACK_LEFT + TRACK_WIDTH}px`;
 
     const styles = getComputedStyle(document.documentElement);
     const blue = styles.getPropertyValue("--accent-blue").trim();
     const red = styles.getPropertyValue("--accent-red").trim();
     const yellow = styles.getPropertyValue("--accent-yellow").trim();
-    const dim = styles.getPropertyValue("--fg-dim").trim();
 
     let rows = [];
     let start = performance.now();
     let rafId;
 
+    function teardownRows() {
+      rows.forEach((row) => {
+        row.top.destroy();
+        row.wrapper.remove();
+        row.bar.remove();
+      });
+      rows = [];
+    }
+
     function setup() {
+      teardownRows();
       const n = Number(nSlider.value);
+      track.style.height = `${n * ROW_HEIGHT + TOP_SIZE}px`;
+
       rows = Array.from({ length: n }, (_, i) => {
         const survives = Math.random() < SURVIVE_FRACTION;
+        const rowTop = i * ROW_HEIGHT;
+
+        const bar = document.createElement("div");
+        bar.style.position = "absolute";
+        bar.style.top = `${rowTop + TOP_SIZE - 6}px`;
+        bar.style.left = `${TRACK_LEFT}px`;
+        bar.style.height = "6px";
+        bar.style.width = "0px";
+        bar.style.opacity = "0.35";
+        bar.style.borderRadius = "3px";
+        track.appendChild(bar);
+
+        const wrapper = document.createElement("div");
+        wrapper.style.position = "absolute";
+        wrapper.style.top = `${rowTop}px`;
+        wrapper.style.width = `${TOP_SIZE}px`;
+        wrapper.style.left = `${TRACK_LEFT - TOP_SIZE / 2}px`;
+        track.appendChild(wrapper);
+
+        const top = createSpinningTop({ size: TOP_SIZE, table: false, seed: Math.random() });
+        wrapper.appendChild(top.el);
+
         return {
-          y: 30 + i * ROW_HEIGHT,
+          top,
+          wrapper,
+          bar,
           fallFrac: survives ? null : 0.15 + Math.random() * 0.8,
+          fallen: false,
         };
       });
       start = performance.now();
     }
 
     function render(t) {
-      ctx.clearRect(0, 0, WIDTH, HEIGHT);
       const p = Math.min(1, (t - start) / DURATION_MS);
-      const trackW = TRACK_RIGHT - TRACK_LEFT;
 
       rows.forEach((row) => {
+        if (row.fallen) return;
         const targetFrac = row.fallFrac === null ? 1 : row.fallFrac;
         const frac = Math.min(p, targetFrac);
-        const x = TRACK_LEFT + frac * trackW;
-        const color = row.fallFrac === null ? yellow : frac >= targetFrac ? red : blue;
+        const x = TRACK_LEFT + frac * TRACK_WIDTH;
+        const color = row.fallFrac === null ? yellow : blue;
 
-        // bar underneath, growing left to right
-        ctx.fillStyle = color;
-        ctx.globalAlpha = 0.35;
-        ctx.fillRect(TRACK_LEFT, row.y + 8, x - TRACK_LEFT, 6);
-        ctx.globalAlpha = 1;
+        row.wrapper.style.left = `${x - TOP_SIZE / 2}px`;
+        row.bar.style.width = `${x - TRACK_LEFT}px`;
+        row.bar.style.background = color;
 
-        const tilt = row.fallFrac !== null && frac >= targetFrac ? Math.PI / 2 : 0;
-        drawTop(ctx, x, row.y, t / 30 + row.y, tilt, color);
+        if (row.fallFrac !== null && frac >= targetFrac) {
+          row.fallen = true;
+          row.bar.style.background = red;
+          row.top.fall();
+        }
       });
-
-      ctx.strokeStyle = dim;
-      ctx.setLineDash([4, 6]);
-      ctx.beginPath();
-      ctx.moveTo(TRACK_RIGHT, 10);
-      ctx.lineTo(TRACK_RIGHT, HEIGHT - 10);
-      ctx.stroke();
-      ctx.setLineDash([]);
 
       rafId = requestAnimationFrame(render);
     }
@@ -123,6 +129,9 @@ export default {
     restartBtn.addEventListener("click", setup);
     nSlider.addEventListener("change", setup);
 
-    return () => cancelAnimationFrame(rafId);
+    return () => {
+      cancelAnimationFrame(rafId);
+      teardownRows();
+    };
   },
 };

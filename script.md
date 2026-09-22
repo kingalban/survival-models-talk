@@ -61,7 +61,7 @@ This is a common type of problem. We have some process, something which has a st
 ## The spinning-top example
 
 {slide:spinning-top-single}
-[A simple animation of a spinning top, silver, sleek, and rotating occasionally, jiggling, and then eventually falling on its side and stopping moving. (A nicer artefact for this will be generated and dropped in later — this is a stand-in.)]
+[A simple animation of a spinning top, silver, sleek, and rotating occasionally, jiggling, and then eventually falling on its side and stopping moving, using the shared spinning-top artefact (artefacts/spinning-top.js).]
 
 {slide:spinning-top-population-standing}
 [The spinning top resets, shrinks, and many more identical spinning tops start next to it in a column. Some of them fall over at a random time within the observation window; the rest stay standing (still spinning) at the end of it. No graph yet — just the population.]
