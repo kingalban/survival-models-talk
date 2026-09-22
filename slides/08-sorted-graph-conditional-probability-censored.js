@@ -19,10 +19,11 @@
 // of every fall after it. Above those, the uncensored slide's own
 // two-term equation, 8/9 × 9/10 = 8/10, sits in the same grid so its "="
 // lines up with theirs, set slightly smaller and dimmer, with an orange
-// border drawn around it and a small "without censoring" label along its
-// bottom edge — the same beat a few slides earlier, kept on screen to
-// compare against. The equations start hidden under the same greyed-out
-// reveal panel; clicking it fades the panel away.
+// border drawn around it and a small "previously, without censoring"
+// label along its bottom edge — the same beat a few slides earlier, kept
+// on screen to compare against. Unlike the uncensored pair, nothing here
+// is hidden behind a reveal panel: all three equations are on screen
+// from the start.
 // --- END SCRIPT ANNOTATION ---
 import { createPawPrint } from "../artefacts/paw-print.js";
 import { getSpinningTopRun } from "../js/spinning-top-run.js";
@@ -167,7 +168,7 @@ export default {
             ${gridItem(fractionHtml(8, 10), 1, 7, "font-size:1.3rem; opacity:0.8;")}
 
             ${gridItem(
-              `<span class="accent-orange" style="font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.04em;">without censoring</span>`,
+              `<span class="accent-orange" style="font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.04em;">previously, without censoring</span>`,
               2,
               "3 / 8",
               "margin-top:-0.9rem;"
@@ -191,16 +192,9 @@ export default {
             A paw print never becomes a term in the product — it only shrinks
             the denominator of every fall that comes after it.
           </p>
-          <div id="equationCover" style="position:absolute; inset: -0.6rem; background: var(--bg-raised); border-radius: 10px; cursor:pointer; transition: opacity 300ms ease;"></div>
         </div>
       </div>
     `;
-
-    const equationCover = stage.querySelector("#equationCover");
-    equationCover.addEventListener("click", () => {
-      equationCover.style.opacity = "0";
-      setTimeout(() => equationCover.remove(), 300);
-    });
 
     const styles = getComputedStyle(document.documentElement);
     const red = styles.getPropertyValue("--accent-red").trim();
