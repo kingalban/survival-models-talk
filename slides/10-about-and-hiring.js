@@ -69,9 +69,11 @@ function card(url, label, qrSvg, extraHtml = "") {
 // The role currently being advertised, spelled out so the slide says what
 // the job is without anyone having to scan the code first.
 const ROLE_HTML = `
-  <div style="margin-top:0.6rem; max-width:19rem;">
-    <div class="accent-yellow" style="font-size:1rem;">Applied AI Software Engineer</div>
-    <div style="font-size:0.85rem; color:var(--fg-dim);">
+  <div style="margin-top:0.9rem; max-width:22rem;">
+    <div class="accent-yellow" style="font-size:1.5rem; font-weight:600; line-height:1.2;">
+      Applied AI Software Engineer
+    </div>
+    <div style="margin-top:0.35rem; font-size:1.05rem; line-height:1.35; color:var(--fg);">
       Softlandia, Finland. Full-stack role building production AI systems.
     </div>
   </div>`;
