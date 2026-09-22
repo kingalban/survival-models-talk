@@ -1,50 +1,62 @@
 // --- SCRIPT ANNOTATION [slide:spinning-top-population-graph] ---
 // The same group of spinning tops as the previous slide, but now as they
 // spin they progress to the right, drawing a bar along underneath them,
-// which becomes a graph. Spinning tops that do not fall within the time
-// frame reach the right-hand side of the graph area and simply continue
-// spinning there. (parameterised and resettable via UI buttons)
+// which becomes a graph. Every spinning top falls at some point before
+// reaching the right-hand side — its falling time is drawn from a
+// distribution bounded between the start and the end of the observation
+// window, so none of them are left still spinning at the edge.
 // --- END SCRIPT ANNOTATION ---
 import { createSpinningTop } from "../artefacts/spinning-top.js";
 
-const TOP_SIZE = 54;
-const ROW_HEIGHT = 62;
+const N = 10;
+const TOP_SIZE = 80;
+const ROW_HEIGHT = 80;
 const TRACK_LEFT = TOP_SIZE / 2 + 10;
-const TRACK_WIDTH = 660;
+const TRACK_WIDTH = 620;
+const TRACK_TOTAL_WIDTH = TRACK_LEFT + TRACK_WIDTH + TOP_SIZE / 2;
+const AXIS_HEIGHT = 36;
 const DURATION_MS = 9000;
-const SURVIVE_FRACTION = 0.3; // fraction that reach the edge still spinning
+// A falling top's x position freezes the moment it triggers — the wobble
+// and settle animation then plays out in place, so it never travels
+// further right regardless of how long that takes. The only real
+// constraint is that the trigger itself lands strictly inside the track,
+// not right at either edge.
+const MIN_FALL_FRAC = 0.05;
+const MAX_FALL_FRAC = 0.95;
+
+function sampleBoundedFallFrac() {
+  return MIN_FALL_FRAC + Math.random() * (MAX_FALL_FRAC - MIN_FALL_FRAC);
+}
 
 export default {
   id: "spinning-top-population-graph",
   mount(stage) {
+    const rowsHeight = N * ROW_HEIGHT + TOP_SIZE;
+    const axisLineEnd = TRACK_TOTAL_WIDTH - 60;
+
     stage.innerHTML = `
-      <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem);">
-        Watching them draw their own graph
+      <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 1.5rem;">
+        Let's make a simple graph
       </h2>
-      <div class="viz-panel">
-        <div>
-          <div id="track" style="position: relative; width: ${TRACK_LEFT + TRACK_WIDTH + TOP_SIZE / 2}px; max-width: 100%;">
-            <div id="edgeLine" style="position: absolute; top: 0; bottom: 0; border-left: 2px dashed var(--fg-dim); opacity: 0.6;"></div>
-          </div>
-          <div style="display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:0.6rem; font-family: var(--font-mono); color: var(--fg-dim); font-size: 0.85rem;">
-            <label>N <input id="nSlider" type="range" min="5" max="16" step="1" value="8" /></label>
-            <button id="restartBtn">Restart</button>
-          </div>
+      <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
+        <div id="track" style="position: relative; width: ${TRACK_TOTAL_WIDTH}px; max-width: 100%; height: ${rowsHeight + AXIS_HEIGHT}px;">
+          <svg width="${TRACK_TOTAL_WIDTH}" height="${AXIS_HEIGHT}"
+               style="position: absolute; left: 0; top: ${rowsHeight}px;">
+            <line x1="0" y1="10" x2="${axisLineEnd}" y2="10" stroke="white" stroke-width="2" />
+            <polygon points="${axisLineEnd},3 ${axisLineEnd + 14},10 ${axisLineEnd},17" fill="white" />
+            <text x="${axisLineEnd + 20}" y="15" fill="white" font-family="var(--font-mono)" font-size="14">time</text>
+          </svg>
         </div>
+        <button id="restartBtn" style="margin-top:1.5rem; font-family: var(--font-mono); color: var(--fg-dim); font-size: 0.85rem;">Restart</button>
       </div>
     `;
 
     const track = stage.querySelector("#track");
-    const edgeLine = stage.querySelector("#edgeLine");
-    const nSlider = stage.querySelector("#nSlider");
     const restartBtn = stage.querySelector("#restartBtn");
-
-    edgeLine.style.left = `${TRACK_LEFT + TRACK_WIDTH}px`;
 
     const styles = getComputedStyle(document.documentElement);
     const blue = styles.getPropertyValue("--accent-blue").trim();
     const red = styles.getPropertyValue("--accent-red").trim();
-    const yellow = styles.getPropertyValue("--accent-yellow").trim();
 
     let rows = [];
     let start = performance.now();
@@ -61,11 +73,8 @@ export default {
 
     function setup() {
       teardownRows();
-      const n = Number(nSlider.value);
-      track.style.height = `${n * ROW_HEIGHT + TOP_SIZE}px`;
 
-      rows = Array.from({ length: n }, (_, i) => {
-        const survives = Math.random() < SURVIVE_FRACTION;
+      rows = Array.from({ length: N }, (_, i) => {
         const rowTop = i * ROW_HEIGHT;
 
         const bar = document.createElement("div");
@@ -75,6 +84,7 @@ export default {
         bar.style.height = "6px";
         bar.style.width = "0px";
         bar.style.opacity = "0.35";
+        bar.style.background = blue;
         bar.style.borderRadius = "3px";
         track.appendChild(bar);
 
@@ -92,7 +102,7 @@ export default {
           top,
           wrapper,
           bar,
-          fallFrac: survives ? null : 0.15 + Math.random() * 0.8,
+          fallFrac: sampleBoundedFallFrac(),
           fallen: false,
         };
       });
@@ -104,16 +114,13 @@ export default {
 
       rows.forEach((row) => {
         if (row.fallen) return;
-        const targetFrac = row.fallFrac === null ? 1 : row.fallFrac;
-        const frac = Math.min(p, targetFrac);
+        const frac = Math.min(p, row.fallFrac);
         const x = TRACK_LEFT + frac * TRACK_WIDTH;
-        const color = row.fallFrac === null ? yellow : blue;
 
         row.wrapper.style.left = `${x - TOP_SIZE / 2}px`;
         row.bar.style.width = `${x - TRACK_LEFT}px`;
-        row.bar.style.background = color;
 
-        if (row.fallFrac !== null && frac >= targetFrac) {
+        if (frac >= row.fallFrac) {
           row.fallen = true;
           row.bar.style.background = red;
           row.top.fall();
@@ -127,7 +134,6 @@ export default {
     rafId = requestAnimationFrame(render);
 
     restartBtn.addEventListener("click", setup);
-    nSlider.addEventListener("change", setup);
 
     return () => {
       cancelAnimationFrame(rafId);
