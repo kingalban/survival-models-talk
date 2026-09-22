@@ -80,7 +80,7 @@ commits make it cheap to rearrange, revert, or diff a single slide later.
 
 ## Standalone build
 
-`npm run build` writes `dist/deck.html`: the whole deck flattened into one
+`./build.sh` (or `npm run build`) writes `dist/deck.html`: the whole deck flattened into one
 file that opens from `file://` with no server and no network. It bundles the
 slide modules with esbuild, inlines `css/deck.css`, and swaps the CDN `d3`
 import for the copy in `node_modules` — so a slide that needs a new library
