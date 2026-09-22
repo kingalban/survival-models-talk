@@ -8,7 +8,14 @@
 // watched. It looks principled, since no churn date is invented, but the
 // customers that leaves you with are exactly the ones who churned early
 // enough to be seen doing it, so the orange curve falls away even faster
-// than the naive red one. A Reset button takes it off again.
+// than the naive red one. A Reset button takes it off again. This slide
+// wasn't part of the talk as delivered — it answers a question the
+// audience asked several times — so it is marked as an encore: above the
+// heading sits the same small uppercase mono label used for "we're
+// hiring" on the previous slide, in orange to match the new curve,
+// reading "encore · added after the talk", and the line under the
+// heading names the audience question it answers before giving the
+// counts.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 import {
@@ -39,11 +46,15 @@ export default {
     const churned = rows.filter((r) => r.event).length;
 
     stage.innerHTML = `
+      <div class="accent-orange" style="font-family:var(--font-mono); font-size:0.85rem; letter-spacing:0.12em; text-transform:uppercase; margin-bottom:0.35rem;">
+        encore · added after the talk
+      </div>
       <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom:0.2rem;">
         What if we just drop them?
       </h2>
       <p style="margin:0 0 0.6rem; font-family:var(--font-mono); font-size:0.85rem; color:var(--fg-dim);">
-        keep only the ${churned} customers we watched churn, ignore the other ${n - churned}
+        asked from the floor more than once — keep only the ${churned} customers we watched
+        churn, ignore the other ${n - churned}
       </p>
       <div class="viz-panel">
         <div>
