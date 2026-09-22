@@ -1,19 +1,26 @@
-// --- SCRIPT ANNOTATION [slide:about-and-hiring-placeholder] ---
-// PARTIAL PLACEHOLDER — the speaker's own details (name, LinkedIn) and
-// the embedded section about the company and its open positions are not
-// designed yet; undecided: whether that section is a live careers page,
-// a static list of roles, or a QR code the room can scan. What is built
-// is the small graph that sits alongside them: employee tenure at the
-// company, generated the same way as the customer data but with no
-// recent-signup bump, since headcount is not surging the way the
-// customer base is. A compact survival chart shows the naive curve in
-// red and the Kaplan-Meier curve in blue against a dashed 50% line, with
-// a tick dropped from each crossing, and underneath it the two numbers
-// those crossings give: the naive median tenure, which counts everyone
-// still employed as if they left today, and the Kaplan-Meier median,
-// which does not.
+// --- SCRIPT ANNOTATION [slide:about-and-hiring] ---
+// The closing "who I am, and who we're hiring" slide: the speaker's
+// name, and two scannable QR codes each shown next to its own
+// written-out URL — one for linkedin.com/in/alban-king, one for
+// softlandia.com/careers, labelled "we're hiring" and naming the role
+// being advertised: Applied AI Software Engineer, "Softlandia, Finland.
+// Full-stack role building production AI systems." The codes are
+// generated ahead of time and baked into the deck rather than fetched or
+// rendered at runtime, so the standalone build still opens with no
+// network. Alongside them, a small worked example on employee tenure,
+// framed as the kind of statistic a large employer might publish rather
+// than as anything about the speaker's own company — "Have you seen this
+// type of statistic?" — with the data generated the same way as the
+// customer lifetimes but with no recent-signup bump, since headcount is
+// not surging the way a customer base is. A compact survival chart shows
+// the naive curve in red and the Kaplan-Meier curve in blue against a
+// dashed 50% line, with a tick dropped from each crossing, and
+// underneath it the two numbers those crossings give: the naive median
+// tenure, which counts everyone still employed as if they left today,
+// and the Kaplan-Meier median, which does not.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import { qrCodes } from "../js/qr-codes.js";
 import { medianFromSteps } from "../js/kaplan-meier.js";
 import {
   MAX_YEARS,
@@ -32,13 +39,42 @@ const MARGIN = { top: 14, right: 16, bottom: 30, left: 40 };
 // five-year window (at rate 0.4 with n=150 it was defined in 4000 out of
 // 4000 simulated runs — the slide still handles the miss, but a live talk
 // should not be rolling dice on whether its punchline exists).
+const QR_SIZE = 108;
 const N_EMPLOYEES = 150;
 const TENURE_RATE = 0.4;
 
 const formatYears = (t) => (t === null ? "not reached" : `${t.toFixed(1)}y`);
 
+// A scannable code over its own URL: the room can scan it, and anyone
+// watching a recording can still read and type the address.
+function card(url, label, qrSvg, extraHtml = "") {
+  return `
+    <div style="display:flex; align-items:center; gap:0.9rem;">
+      <div style="width:${QR_SIZE}px; background:#fff; padding:6px; border-radius:8px; flex:none;">
+        ${qrSvg}
+      </div>
+      <div style="text-align:left;">
+        <div class="accent-blue" style="font-family:var(--font-mono); font-size:0.75rem; letter-spacing:0.08em; text-transform:uppercase;">
+          ${label}
+        </div>
+        <div style="font-family:var(--font-mono); font-size:1rem;">${url}</div>
+        ${extraHtml}
+      </div>
+    </div>`;
+}
+
+// The role currently being advertised, spelled out so the slide says what
+// the job is without anyone having to scan the code first.
+const ROLE_HTML = `
+  <div style="margin-top:0.6rem; max-width:19rem;">
+    <div class="accent-yellow" style="font-size:1rem;">Applied AI Software Engineer</div>
+    <div style="font-size:0.85rem; color:var(--fg-dim);">
+      Softlandia, Finland. Full-stack role building production AI systems.
+    </div>
+  </div>`;
+
 export default {
-  id: "about-and-hiring-placeholder",
+  id: "about-and-hiring",
   mount(stage) {
     const rows = buildTenureDataset(N_EMPLOYEES, TENURE_RATE);
     const naiveSteps = naiveSurvivalSteps(rows, N_EMPLOYEES);
@@ -48,23 +84,20 @@ export default {
     const stillHere = rows.filter((r) => !r.event).length;
 
     stage.innerHTML = `
-      <h2 class="slide-title accent-yellow" style="font-size: clamp(1.4rem, 3vw, 2rem);">
-        TODO: who I am, and who we're hiring
+      <h2 class="slide-title" style="font-size: clamp(1.6rem, 3vw, 2.2rem); margin-bottom: 0.4rem;">
+        Alban King
       </h2>
-      <div style="display:flex; align-items:flex-start; justify-content:center; gap:3rem; flex-wrap:wrap;">
-        <div style="max-width:24rem;">
-          <p class="slide-body" style="color: var(--fg-dim); text-align:left;">
-            Needs: the speaker's own details (name, LinkedIn), then an
-            embedded section about the company and its open positions.
-          </p>
-          <p class="slide-body" style="color: var(--fg-dim); text-align:left;">
-            Undecided: how the company section is embedded — a live careers
-            page, a static list of roles, or a QR code the room can scan.
-          </p>
+      <div style="display:flex; align-items:flex-start; justify-content:center; gap:2.6rem; flex-wrap:wrap;">
+        <div style="display:flex; flex-direction:column; gap:1.6rem;">
+          ${card("linkedin.com/in/alban-king", "linkedin", qrCodes.linkedin)}
+          ${card("softlandia.com/careers", "we're hiring", qrCodes.careers, ROLE_HTML)}
         </div>
         <div style="text-align:center;">
-          <p style="margin:0 0 0.4rem; font-family:var(--font-mono); font-size:0.85rem; color:var(--fg-dim);">
-            How long do people stay here? ${N_EMPLOYEES} employees, ${stillHere} still with us
+          <p style="margin:0 0 0.15rem; font-size:1.05rem;">
+            Have you seen this type of statistic?
+          </p>
+          <p style="margin:0 0 0.4rem; font-family:var(--font-mono); font-size:0.8rem; color:var(--fg-dim);">
+            median tenure at some large employer — ${N_EMPLOYEES} people, ${stillHere} still employed
           </p>
           <svg id="tenureChart" width="${WIDTH}" height="${HEIGHT}"></svg>
           <div style="display:flex; justify-content:center; gap:2.4rem; margin-top:0.8rem;">
@@ -73,7 +106,7 @@ export default {
                 ${formatYears(naiveMedian)}
               </div>
               <div style="font-family:var(--font-mono); font-size:0.75rem; color:var(--fg-dim); max-width:11rem;">
-                naive median — everyone still here counted as if they left today
+                naive median — everyone still employed counted as if they left today
               </div>
             </div>
             <div>
