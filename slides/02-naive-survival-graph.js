@@ -25,65 +25,18 @@
 // longer get to peek at the ground truth.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
+import {
+  MAX_YEARS,
+  buildDataset,
+  naiveSurvivalSteps,
+  trueLifetimeSteps,
+  setSaasRun,
+} from "../js/saas-dataset.js";
 
 const WIDTH = 760;
 const HEIGHT = 420;
 const MARGIN = { top: 20, right: 20, bottom: 40, left: 46 };
-const MAX_YEARS = 5;
 const REVEAL_MS = 1200;
-
-function sampleExponential(rate) {
-  return -Math.log(1 - Math.random()) / rate;
-}
-
-// Base censoring time ~ linearly decreasing density on [0, MAX_YEARS]:
-// pdf(t) = (2 / MAX_YEARS) * (1 - t / MAX_YEARS). Sampled by rejection.
-function sampleLinearCensoring() {
-  const peak = 2 / MAX_YEARS;
-  while (true) {
-    const t = Math.random() * MAX_YEARS;
-    const u = Math.random() * peak;
-    if (u <= peak * (1 - t / MAX_YEARS)) return t;
-  }
-}
-
-// Mixes in an extra cluster of censoring times under 1 year: a recent
-// signup surge means a lot more users have only been observed briefly, so
-// they show up censored (still subscribed, but not for long) rather than
-// as a churn event.
-function sampleCensoring(bumpWeight) {
-  if (Math.random() < bumpWeight) return Math.random() * 1;
-  return sampleLinearCensoring();
-}
-
-function buildDataset(n, rate, bumpWeight) {
-  const rows = [];
-  for (let i = 0; i < n; i++) {
-    const trueLifetime = sampleExponential(rate);
-    const censorTime = sampleCensoring(bumpWeight);
-    const observed = Math.min(trueLifetime, censorTime);
-    rows.push({ trueLifetime, time: observed, event: trueLifetime <= censorTime });
-  }
-  return rows;
-}
-
-// Naive: pretend every observation (event or censored) is an actual churn
-// at its observed time — the bias the slide is illustrating.
-function naiveSurvivalSteps(rows, n) {
-  const times = [...rows.map((r) => r.time)].sort((a, b) => a - b);
-  const steps = [[0, 1]];
-  times.forEach((t, i) => steps.push([t, 1 - (i + 1) / n]));
-  return steps;
-}
-
-// Ground truth: we generated the data, so we know each user's actual
-// lifetime outright — no estimator needed yet.
-function trueLifetimeSteps(rows, n) {
-  const times = [...rows.map((r) => r.trueLifetime)].sort((a, b) => a - b);
-  const steps = [[0, 1]];
-  times.forEach((t, i) => steps.push([Math.min(t, MAX_YEARS), 1 - (i + 1) / n]));
-  return steps;
-}
 
 export default {
   id: "naive-survival-graph",
@@ -200,6 +153,8 @@ export default {
       const rate = Number(rateSlider.value);
       const bumpWeight = Number(bumpSlider.value);
       rows = buildDataset(n, rate, bumpWeight);
+      // Published so the closing slide can redraw this exact customer base.
+      setSaasRun({ rows, n });
       naivePath.datum(naiveSurvivalSteps(rows, n)).attr("d", step);
       truePath.attr("opacity", 0);
       trueLegend.attr("opacity", 0);
