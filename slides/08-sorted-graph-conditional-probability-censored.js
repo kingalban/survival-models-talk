@@ -16,12 +16,13 @@
 // two stacked equations in ascending order — the second and third falls'
 // running products — with a line underneath noting that a paw print
 // never becomes a term in the product, it only shrinks the denominator
-// of every fall after it. Underneath those, a small box with an orange
-// border holds the uncensored slide's own two-term equation, 8/9 × 9/10
-// = 8/10, with a small "without censoring" label along its bottom edge —
-// the same beat a few slides earlier, kept on screen to compare against.
-// The equations start hidden under the same greyed-out reveal panel;
-// clicking it fades the panel away.
+// of every fall after it. Above those, the uncensored slide's own
+// two-term equation, 8/9 × 9/10 = 8/10, sits in the same grid so its "="
+// lines up with theirs, set slightly smaller and dimmer, with an orange
+// border drawn around it and a small "without censoring" label along its
+// bottom edge — the same beat a few slides earlier, kept on screen to
+// compare against. The equations start hidden under the same greyed-out
+// reveal panel; clicking it fades the panel away.
 // --- END SCRIPT ANNOTATION ---
 import { createPawPrint } from "../artefacts/paw-print.js";
 import { getSpinningTopRun } from "../js/spinning-top-run.js";
@@ -71,8 +72,8 @@ function percentHtml(value) {
 // Placed on an explicit grid cell so the "=" in a two-term and a
 // three-term equation land in the same column regardless of how many
 // factors come before it.
-function gridItem(html, row, col) {
-  return `<span style="grid-row:${row}; grid-column:${col}; display:flex; align-items:center; justify-content:center;">${html}</span>`;
+function gridItem(html, row, col, extraStyle = "") {
+  return `<span style="grid-row:${row}; grid-column:${col}; display:flex; align-items:center; justify-content:center; position:relative; ${extraStyle}">${html}</span>`;
 }
 
 export default {
@@ -155,31 +156,36 @@ export default {
         </div>
         <div style="position:relative;">
           <div style="display:grid; grid-template-columns: repeat(7, auto); align-items:center; column-gap:0.7rem; row-gap:1.4rem; font-size:1.7rem;">
-            ${gridItem(fractionHtml(falls[1].atRisk - 1, falls[1].atRisk), 1, 3)}
-            ${gridItem("&times;", 1, 4)}
-            ${gridItem(fractionHtml(falls[0].atRisk - 1, falls[0].atRisk), 1, 5)}
-            ${gridItem("=", 1, 6)}
-            ${gridItem(`<span class="accent-yellow">${percentHtml(falls[1].after)}</span>`, 1, 7)}
+            <!-- The callback to the uncensored slide shares this grid so its
+                 "=" lands in the same column as the censored equations', with
+                 a border drawn over the cells it spans to set it apart. -->
+            <span style="grid-row:1 / 3; grid-column:3 / 8; align-self:stretch; margin:-0.8rem -1rem; border:2px solid var(--accent-orange); border-radius:10px; pointer-events:none;"></span>
+            ${gridItem(fractionHtml(8, 9), 1, 3, "font-size:1.3rem; opacity:0.8;")}
+            ${gridItem("&times;", 1, 4, "font-size:1.3rem; opacity:0.8;")}
+            ${gridItem(fractionHtml(9, 10), 1, 5, "font-size:1.3rem; opacity:0.8;")}
+            ${gridItem("=", 1, 6, "font-size:1.3rem; opacity:0.8;")}
+            ${gridItem(fractionHtml(8, 10), 1, 7, "font-size:1.3rem; opacity:0.8;")}
 
-            ${gridItem(fractionHtml(falls[2].atRisk - 1, falls[2].atRisk), 2, 1)}
-            ${gridItem("&times;", 2, 2)}
-            ${gridItem(fractionHtml(falls[1].atRisk - 1, falls[1].atRisk), 2, 3)}
-            ${gridItem("&times;", 2, 4)}
-            ${gridItem(fractionHtml(falls[0].atRisk - 1, falls[0].atRisk), 2, 5)}
-            ${gridItem("=", 2, 6)}
-            ${gridItem(`<span class="accent-yellow">${percentHtml(falls[2].after)}</span>`, 2, 7)}
-          </div>
-          <div style="margin-top:2rem; padding:1rem 1.4rem 0.5rem; border:2px solid var(--accent-orange); border-radius:10px; display:inline-block;">
-            <div style="display:grid; grid-template-columns: repeat(5, auto); align-items:center; column-gap:0.7rem; font-size:1.3rem; opacity:0.8;">
-              ${gridItem(fractionHtml(8, 9), 1, 1)}
-              ${gridItem("&times;", 1, 2)}
-              ${gridItem(fractionHtml(9, 10), 1, 3)}
-              ${gridItem("=", 1, 4)}
-              ${gridItem(fractionHtml(8, 10), 1, 5)}
-            </div>
-            <div class="accent-orange" style="margin-top:0.7rem; text-align:center; font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.04em;">
-              without censoring
-            </div>
+            ${gridItem(
+              `<span class="accent-orange" style="font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.04em;">without censoring</span>`,
+              2,
+              "3 / 8",
+              "margin-top:-0.9rem;"
+            )}
+
+            ${gridItem(fractionHtml(falls[1].atRisk - 1, falls[1].atRisk), 3, 3, "margin-top:1rem;")}
+            ${gridItem("&times;", 3, 4, "margin-top:1rem;")}
+            ${gridItem(fractionHtml(falls[0].atRisk - 1, falls[0].atRisk), 3, 5, "margin-top:1rem;")}
+            ${gridItem("=", 3, 6, "margin-top:1rem;")}
+            ${gridItem(`<span class="accent-yellow">${percentHtml(falls[1].after)}</span>`, 3, 7, "margin-top:1rem;")}
+
+            ${gridItem(fractionHtml(falls[2].atRisk - 1, falls[2].atRisk), 4, 1)}
+            ${gridItem("&times;", 4, 2)}
+            ${gridItem(fractionHtml(falls[1].atRisk - 1, falls[1].atRisk), 4, 3)}
+            ${gridItem("&times;", 4, 4)}
+            ${gridItem(fractionHtml(falls[0].atRisk - 1, falls[0].atRisk), 4, 5)}
+            ${gridItem("=", 4, 6)}
+            ${gridItem(`<span class="accent-yellow">${percentHtml(falls[2].after)}</span>`, 4, 7)}
           </div>
           <p style="max-width:26rem; margin-top:1.8rem; font-size:0.95rem; opacity:0.75;">
             A paw print never becomes a term in the product — it only shrinks
