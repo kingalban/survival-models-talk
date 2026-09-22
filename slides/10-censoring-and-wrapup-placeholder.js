@@ -1,9 +1,8 @@
 // --- SCRIPT ANNOTATION [slide:censoring-and-wrapup-placeholder] ---
-// PLACEHOLDER — not yet designed. Needs to cover: reworking the staircase
-// graph to correctly ignore censored observations instead of counting them
-// as failures, the wrap-up/summary tying back to the SaaS problem, naming
-// Kaplan-Meier, its non-parametric tradeoffs, and the
-// restricted-mean-survival-time bonus fact.
+// PLACEHOLDER — not yet designed. Needs to cover: the wrap-up/summary
+// tying back to the SaaS problem, naming Kaplan-Meier, its
+// non-parametric tradeoffs, and the restricted-mean-survival-time bonus
+// fact.
 // --- END SCRIPT ANNOTATION ---
 export default {
   id: "censoring-and-wrapup-placeholder",

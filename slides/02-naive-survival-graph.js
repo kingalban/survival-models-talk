@@ -97,7 +97,7 @@ export default {
           <svg id="chart" width="${WIDTH}" height="${HEIGHT}"></svg>
           <div style="display:flex; flex-wrap:wrap; align-items:center; gap:1rem; margin-top:0.6rem; font-family: var(--font-mono); color: var(--fg-dim); font-size: 0.85rem;">
             <label>N <input id="nSlider" type="range" min="20" max="400" step="10" value="400" /></label>
-            <label>&lambda; <input id="rateSlider" type="range" min="0.1" max="2" step="0.05" value="0.5" /></label>
+            <label>&lambda; <input id="rateSlider" type="range" min="0.1" max="2" step="0.05" value="0.2" /></label>
             <label>recent-signup bump <input id="bumpSlider" type="range" min="0" max="0.7" step="0.05" value="0.65" /></label>
             <button id="resampleBtn">Resample</button>
           </div>

@@ -10,7 +10,7 @@ import spinningTopPopulationStanding from "../slides/04-spinning-top-population-
 import spinningTopPopulationGraph from "../slides/05-spinning-top-population-graph.js";
 import sortedGraphConditionalProbability from "../slides/06-sorted-graph-conditional-probability.js";
 import spinningTopPopulationGraphCensored from "../slides/07-spinning-top-population-graph-censored.js";
-import spinningTopSortedBarsCensored from "../slides/08-spinning-top-sorted-bars-censored.js";
+import sortedGraphConditionalProbabilityCensored from "../slides/08-sorted-graph-conditional-probability-censored.js";
 import survivalGraphBuildupPlaceholder from "../slides/09-survival-graph-buildup-placeholder.js";
 import censoringAndWrapupPlaceholder from "../slides/10-censoring-and-wrapup-placeholder.js";
 
@@ -23,7 +23,7 @@ export const storyboard = [
   spinningTopPopulationGraph,
   sortedGraphConditionalProbability,
   spinningTopPopulationGraphCensored,
-  spinningTopSortedBarsCensored,
+  sortedGraphConditionalProbabilityCensored,
   survivalGraphBuildupPlaceholder,
   censoringAndWrapupPlaceholder,
 ];
