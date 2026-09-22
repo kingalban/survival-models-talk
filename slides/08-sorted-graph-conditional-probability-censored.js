@@ -4,17 +4,19 @@
 // the Kaplan-Meier step line, percentage axis — locked to that slide's
 // exact numbers, no restarting or recalculating here. Laid out like the
 // uncensored pair, but with the numbers now derived from the actual run
-// rather than hard-coded: each of the first three genuine falls gets a
-// stacked fraction to the right of its bar giving that event's
-// conditional survival, (at risk − 1) / at risk, where the at-risk count
-// has already been reduced by any censoring before it. Each censored row
-// before that point is labelled "no update" next to its paw print. To
-// the right of the graph, the same two stacked equations in ascending
-// order — the second and third falls' running products — but since the
-// fractions no longer cancel, each one's result is a percentage rather
-// than a tidy k/10, with a line underneath noting that a paw print never
-// becomes a term in the product, it only shrinks the denominator of
-// every fall after it. The equations start hidden under the same
+// rather than hard-coded: each of the first three genuine falls is
+// labelled to the right of its bar with the level the curve has reached
+// after it — the same role the uncensored slide's 9/10, 8/10, 7/10 play,
+// but as a percentage, since with censoring in the mix it is no longer a
+// tidy k/10. The per-event conditional factors, (at risk − 1) / at risk
+// with the at-risk count already reduced by any censoring before it,
+// appear only in the equations, and each equation's result is the label
+// beside its own bar. Each censored row before that point is labelled
+// "no update" next to its paw print. To the right of the graph, the same
+// two stacked equations in ascending order — the second and third falls'
+// running products — with a line underneath noting that a paw print
+// never becomes a term in the product, it only shrinks the denominator
+// of every fall after it. The equations start hidden under the same
 // greyed-out reveal panel; clicking it fades the panel away.
 // --- END SCRIPT ANNOTATION ---
 import { createPawPrint } from "../artefacts/paw-print.js";
@@ -99,9 +101,16 @@ export default {
     const yPercent = d3.scaleLinear().domain([1, 0]).range([0, N * ROW_HEIGHT]);
 
     // Lifted well clear of the survival line, same as the uncensored slide.
+    //
+    // These label the *level of the curve* after each fall, exactly as the
+    // uncensored slide's 9/10, 8/10, 7/10 do — not that fall's conditional
+    // factor, which would read as the wrong height (the second fall's
+    // factor is 7/8, but the curve sits at 78.8% there, not 87.5%). The
+    // conditional factors are what the equations to the right multiply
+    // together; each equation's result is the annotation beside its bar.
     const ANNOTATION_LIFT = 42;
     const annotations = falls.map((step) => ({
-      html: fractionHtml(step.atRisk - 1, step.atRisk),
+      html: percentHtml(step.after),
       x: x(step.time) + 16,
       y: step.row * ROW_HEIGHT + TOP_SIZE - BAR_HEIGHT / 2 - ANNOTATION_LIFT,
     }));
