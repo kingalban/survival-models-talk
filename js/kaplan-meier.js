@@ -26,12 +26,3 @@ export function kaplanMeierSteps(rows) {
     return step;
   });
 }
-
-// The polyline for a step-after curve: starts at 100%, one point per
-// observation (a censoring contributes a point at the same height, so it
-// is visibly flat there), and holds the final level out to endTime.
-export function kaplanMeierCurve(rows, endTime) {
-  const steps = kaplanMeierSteps(rows);
-  const final = steps.length ? steps[steps.length - 1].after : 1;
-  return [[0, 1], ...steps.map((s) => [s.time, s.after]), [endTime, final]];
-}

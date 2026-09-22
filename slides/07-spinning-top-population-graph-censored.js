@@ -12,16 +12,14 @@
 // been resolved, "Order" reorders the bars by observed time (regardless
 // of type) and cross-fades into a real D3 chart with a percentage axis,
 // same as the previous pair — small paw markers stay next to the
-// censored bars. The step line here is a proper Kaplan-Meier curve
-// rather than the naive one-drop-per-row staircase: it stays flat across
-// a censored observation and takes a correspondingly bigger step at the
-// next real fall, because a stolen top leaves the risk set without ever
-// counting as a failure.
+// censored bars. No survival line is drawn here: the bars and the paw
+// prints are the whole picture, and the question of what the curve
+// should do at a censored observation is left for the next slide to
+// answer.
 // --- END SCRIPT ANNOTATION ---
 import { createSpinningTop } from "../artefacts/spinning-top.js";
 import { createPawPrint } from "../artefacts/paw-print.js";
 import { setSpinningTopRun } from "../js/spinning-top-run.js";
-import { kaplanMeierCurve } from "../js/kaplan-meier.js";
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 const N = 10;
@@ -265,7 +263,6 @@ export default {
     // bars — now drawn as an actual D3 chart with a real axis, cross-faded
     // in over the div-based version rather than replacing it abruptly.
     function swapToRealGraph(sortedRows) {
-      const seconds = sortedRows.map((r) => r.value * (DURATION_MS / 1000));
       const x = d3
         .scaleLinear()
         .domain([0, DURATION_MS / 1000])
@@ -299,28 +296,6 @@ export default {
             .tickValues(d3.range(0, 1.001, 0.1))
             .tickFormat(d3.format(".0%"))
         );
-
-      // Kaplan-Meier, not a row-per-observation staircase: a dog-stolen top
-      // leaves the risk set without dropping the curve, so the line is flat
-      // across a paw print and takes a bigger step at the next real fall.
-      const survivalSteps = kaplanMeierCurve(
-        sortedRows.map((r, i) => ({ time: seconds[i], censored: r.censored })),
-        DURATION_MS / 1000
-      );
-      const survivalLine = d3
-        .line()
-        .x((d) => x(d[0]))
-        .y((d) => yPercent(d[1]))
-        .curve(d3.curveStepAfter);
-
-      realChart
-        .append("path")
-        .datum(survivalSteps)
-        .attr("fill", "none")
-        .attr("stroke", "white")
-        .attr("stroke-width", 2.5)
-        .attr("stroke-dasharray", "3 6")
-        .attr("d", survivalLine);
 
       // Small persistent paw markers next to each censored bar's end — a
       // censored point stays visibly marked even after everything else
