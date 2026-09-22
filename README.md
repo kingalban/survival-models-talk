@@ -18,5 +18,5 @@ and no network. Rebuild it with `./build.sh`.
 For development, serve the repo root (`python3 -m http.server`) and open
 `index.html`; the slides are ES modules, so `file://` won't work there.
 
-`script.md` is the spoken script and the source of truth for what each slide
-shows.
+`script.md` is a rough draft of the spoken form, that was used to derive the
+slides.
