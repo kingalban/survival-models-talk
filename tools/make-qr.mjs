@@ -11,7 +11,10 @@ import { writeFileSync } from "node:fs";
 import QRCode from "qrcode";
 
 const TARGETS = {
-  careers: "https://softlandia.com/careers",
+  // Deep link to the advertised role. The slide deliberately prints the
+  // shorter softlandia.com/careers next to it: the short one is typeable
+  // from the back of a room, the code can afford to be specific.
+  careers: "https://softlandia.com/open-jobs/applied-ai-software-engineer",
 };
 
 const entries = await Promise.all(
