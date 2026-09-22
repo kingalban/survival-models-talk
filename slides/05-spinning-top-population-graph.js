@@ -18,6 +18,7 @@
 // bottom) makes that scale explicit.
 // --- END SCRIPT ANNOTATION ---
 import { createSpinningTop } from "../artefacts/spinning-top.js";
+import { setSpinningTopRun } from "../js/spinning-top-run.js";
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 const N = 10;
@@ -69,6 +70,7 @@ export default {
         </div>
         <div style="display:flex; align-items:center; gap:1.2rem; margin-top:1.5rem;">
           <button id="restartBtn" class="btn-subtle">Restart</button>
+          <button id="skipBtn" class="btn-subtle">Skip to the end</button>
           <button id="orderBtn" class="btn-subtle" disabled>Order</button>
         </div>
       </div>
@@ -77,6 +79,7 @@ export default {
     const track = stage.querySelector("#track");
     const realChart = d3.select(stage.querySelector("#realChart"));
     const restartBtn = stage.querySelector("#restartBtn");
+    const skipBtn = stage.querySelector("#skipBtn");
     const orderBtn = stage.querySelector("#orderBtn");
 
     const styles = getComputedStyle(document.documentElement);
@@ -143,6 +146,7 @@ export default {
           fallen: false,
         };
       });
+      setSpinningTopRun("population-graph", rows.map((row) => row.fallFrac));
       start = performance.now();
       rafId = requestAnimationFrame(render);
     }
@@ -171,6 +175,23 @@ export default {
         rafId = null;
         orderBtn.disabled = false;
       }
+    }
+
+    // Jumps straight to every top's already-fallen position, for pacing a
+    // live talk without waiting out the full fall animation.
+    function skipToEnd() {
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
+      rows.forEach((row) => {
+        if (row.fallen) return;
+        const x = TRACK_LEFT + row.fallFrac * TRACK_WIDTH;
+        row.wrapper.style.left = `${x - TOP_SIZE / 2}px`;
+        row.bar.style.width = `${x - TRACK_LEFT}px`;
+        row.fallen = true;
+        row.bar.style.background = red;
+        row.top.fall();
+      });
+      orderBtn.disabled = false;
     }
 
     function fadeOutTops() {
@@ -276,6 +297,7 @@ export default {
 
     setup();
     restartBtn.addEventListener("click", setup);
+    skipBtn.addEventListener("click", skipToEnd);
     orderBtn.addEventListener("click", fadeOutTops);
 
     return teardown;

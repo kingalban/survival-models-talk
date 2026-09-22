@@ -12,6 +12,7 @@
 // equations start hidden under a plain greyed-out panel; clicking it
 // fades the panel away.
 // --- END SCRIPT ANNOTATION ---
+import { getSpinningTopRun } from "../js/spinning-top-run.js";
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 const N = 10;
@@ -46,7 +47,15 @@ export default {
   mount(stage) {
     const rowsHeight = N * ROW_HEIGHT + TOP_SIZE;
 
-    const fallFracs = Array.from({ length: N }, sampleBoundedFallFrac).sort((a, b) => a - b);
+    // Locked to whatever the population-graph slide last generated (i.e.
+    // whatever was on screen when you clicked its Restart button) — only a
+    // fallback if this slide is viewed standalone without that one having
+    // run first.
+    const fallFracs = (
+      getSpinningTopRun("population-graph") || Array.from({ length: N }, sampleBoundedFallFrac)
+    )
+      .slice()
+      .sort((a, b) => a - b);
     const seconds = fallFracs.map((f) => f * (DURATION_MS / 1000));
 
     const x = d3
