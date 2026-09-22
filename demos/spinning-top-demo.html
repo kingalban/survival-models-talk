@@ -3,7 +3,7 @@
 <head>
 <meta charset="utf-8" />
 <meta name="viewport" content="width=device-width, initial-scale=1" />
-<title>Spinning top — Inception totem study</title>
+<title>Spinning top — totem shape study</title>
 <style>
   :root {
     --bg: #15161a;
@@ -115,10 +115,10 @@
 </head>
 <body>
 
-<h1>Spinning top — Inception totem study</h1>
-<p class="sub">Lathe-turned metal silhouettes on a lit table: a real precession model drives the wobble,
-so the tilt, the rim foreshortening and the travelling highlight all stay in sync.
-Click a top to topple just that one.</p>
+<h1>Spinning top — totem shape study</h1>
+<p class="sub">One finish — polished chrome — turned to three different profiles, so shape is the only
+thing that changes. A precession model drives the wobble, so the lean, the cut rings
+and the travelling glint all stay in sync. Click a top to topple just that one.</p>
 
 <div class="controls">
   <button class="primary" id="playAll">▶ Let them fall</button>
@@ -138,45 +138,59 @@ Click a top to topple just that one.</p>
    same numbers, so a variant only has to change the profile.
 ------------------------------------------------------------------ */
 
+/* One finish for all of them — polished chrome — so the only thing that
+   changes card to card is the turned profile. `grooves` are the heights of
+   the cut rings around the belly. */
+const CHROME = {
+  edge: '#2b3038',
+  dark: '#5f6771',
+  mid:  '#b9c2cc',
+  spec: '#ffffff',
+  cut:  '#454d57',
+  lip:  '#eef3f8',
+};
+
 const DESIGNS = [
   {
-    name: 'Brass totem',
+    name: 'Classic totem',
     desc: 'Film proportions — heavy belly, short neck',
     profile: [
       [0,0],[4,5],[9,12],[14,19],[20,26],[26,31],[31,33.6],[35,34.4],
       [40,33.8],[45,31.4],[51,27.4],[57,22.6],[63,17.8],[69,13.6],[74,10.6],
       [79,8.8],[83,8.2],[87,9.4],[90,10.2],[93,9.4],[95,9],
     ],
-    metal: { edge: '#4a3413', dark: '#8a6220', mid: '#d8a94c', spec: '#fff3cf', warm: '#a97a28' },
+    grooves: [40, 47],
   },
   {
-    name: 'Polished chrome',
-    desc: 'Wider stance, cooler finish',
+    name: 'Wide saucer',
+    desc: 'Broad and low, stubby stem',
     profile: [
-      [0,0],[4,6],[9,14],[14,21.6],[19,28],[24,33],[29,36.4],[33,37.6],
-      [38,36.8],[43,34],[49,29.2],[55,23.6],[61,18.2],[66,14],[71,11.2],
-      [75,9.8],[79,9.4],[83,10.8],[86,11.8],[89,11],[91,10.6],
+      [0,0],[3,6],[7,15],[11,24],[15,32],[19,38],[23,41.4],[26,42.4],
+      [30,41.6],[34,38.6],[39,34],[44,28.4],[49,22.6],[54,17.2],[58,13.4],
+      [62,10.8],[66,9.4],[70,9],[74,10.6],[77,11.4],[79,10.8],
     ],
-    metal: { edge: '#2b3038', dark: '#5f6771', mid: '#b9c2cc', spec: '#ffffff', warm: '#8d959f' },
+    grooves: [31, 37],
   },
   {
-    name: 'Blued steel',
-    desc: 'Taller, narrower, long neck',
+    name: 'Tall spindle',
+    desc: 'Slender body drawn out into a long neck',
     profile: [
-      [0,0],[5,4],[11,10],[18,16.4],[25,22],[32,25.8],[38,27.6],[43,28],
-      [49,27],[56,24.4],[64,20.4],[72,16.2],[80,12.6],[88,9.8],[96,8],
-      [103,7.2],[109,7],[114,8.4],[118,9.4],[121,8.6],[123,8.2],
+      [0,0],[5,4],[11,10],[17,15.6],[24,20.6],[31,24],[38,25.8],[44,26.2],
+      [51,25.2],[59,22.6],[68,18.8],[77,15],[86,12],[95,9.8],[104,8.4],
+      [112,7.6],[119,7.4],[125,8.8],[129,9.8],[132,9],[134,8.6],
     ],
-    metal: { edge: '#171b26', dark: '#333d55', mid: '#6d7c9c', spec: '#dfe7f5', warm: '#4a5674' },
+    grooves: [50, 58],
   },
 ];
 
 /* One knob for how large the tops sit in the frame: the profiles above are
    authored at a comfortable drawing scale, then scaled once here so every
-   derived measurement (rings, rim ellipses, lift, slide) follows along. */
+   derived measurement (grooves, rim ellipse, lift, slide) follows along. */
 const SCALE = 1.3;
 for (const d of DESIGNS) {
   d.profile = d.profile.map(([y, r]) => [y * SCALE, r * SCALE]);
+  d.grooves = d.grooves.map((y) => y * SCALE);
+  d.metal = CHROME;
 }
 
 const VB_W = 272, VB_H = 296;
@@ -212,12 +226,15 @@ function bellyOf(profile) {
 }
 
 /* ------------------------------------------------------------------
-   Markup for one top. Deliberately plain: a silhouette filled with a
-   single cross-section gradient, one flat head ellipse, one moving
-   highlight, a soft shadow. No turning rings, no rim lips, no
-   reflection — at slide size that detail just reads as noise.
-   IDs are namespaced per instance because each variant has its own
-   gradients and clip.
+   Markup for one top: a silhouette filled with a single cross-section
+   gradient, a flat head ellipse, a pair of cut rings around the belly,
+   and a glint that travels round those rings. Everything reads
+   horizontally — nothing vertical is laid over the body, so the lit
+   edges of the silhouette stay unbroken.
+
+   The groove paths and the glint are re-cut every frame from the
+   current viewing angle (see render), so they bow with the lean.
+   IDs are namespaced per instance.
 ------------------------------------------------------------------ */
 function buildSVG(design, i) {
   const p = design.profile;
@@ -236,12 +253,18 @@ function buildSVG(design, i) {
         <stop offset="52%"  stop-color="${m.mid}" />
         <stop offset="100%" stop-color="${m.dark}" />
       </linearGradient>
-      <!-- the reflection that travels around the body as it spins -->
-      <linearGradient id="${u('sweep')}" x1="0" y1="0" x2="1" y2="0">
-        <stop offset="0%"   stop-color="${m.spec}" stop-opacity="0" />
-        <stop offset="50%"  stop-color="${m.spec}" stop-opacity="0.8" />
+      <!-- The mark that travels round the belly as it spins: a dark
+           reflection with a lit edge under it. Dark reads on chrome —
+           a white glint on a white specular band is invisible. -->
+      <radialGradient id="${u('glint')}" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="${m.edge}" stop-opacity="0.85" />
+        <stop offset="50%"  stop-color="${m.edge}" stop-opacity="0.4" />
+        <stop offset="100%" stop-color="${m.edge}" stop-opacity="0" />
+      </radialGradient>
+      <radialGradient id="${u('glintlip')}" cx="0.5" cy="0.5" r="0.5">
+        <stop offset="0%"   stop-color="${m.spec}" stop-opacity="0.95" />
         <stop offset="100%" stop-color="${m.spec}" stop-opacity="0" />
-      </linearGradient>
+      </radialGradient>
       <radialGradient id="${u('pool')}" cx="0.5" cy="0.5" r="0.5">
         <stop offset="0%"   stop-color="#cbb894" stop-opacity="0.14" />
         <stop offset="100%" stop-color="#000000" stop-opacity="0" />
@@ -262,8 +285,14 @@ function buildSVG(design, i) {
 
     <g class="top">
       <path d="${body}" fill="url(#${u('body')})" />
-      <rect class="sweep" x="-7" y="${-head[0] - 6}" width="14" height="${head[0] + 12}"
-            fill="url(#${u('sweep')})" clip-path="url(#${u('clip')})" opacity="0.4" />
+      <g clip-path="url(#${u('clip')})">
+        ${design.grooves.map(() => `
+          <path class="cut"  fill="none" stroke="${m.cut}" stroke-width="2" stroke-linecap="round" />
+          <path class="lip"  fill="none" stroke="${m.lip}" stroke-width="1" stroke-linecap="round"
+                opacity="0.75" />`).join('')}
+        <ellipse class="glint" ry="6" fill="url(#${u('glint')})" />
+        <ellipse class="glint-lip" ry="2.4" fill="url(#${u('glintlip')})" />
+      </g>
       <ellipse class="head" cx="0" cy="${-head[0]}" rx="${head[1]}" ry="${head[1] * CAM}"
                fill="${m.mid}" />
     </g>
@@ -311,7 +340,11 @@ class Top {
     this.height = this.head[0];
     this.top = root.querySelector('.top');
     this.cast = root.querySelector('.cast');
-    this.sweep = root.querySelector('.sweep');
+    this.cuts = Array.from(root.querySelectorAll('.cut'));
+    this.lips = Array.from(root.querySelectorAll('.lip'));
+    this.glint = root.querySelector('.glint');
+    this.glintLip = root.querySelector('.glint-lip');
+    this.grooves = design.grooves.map((y) => ({ y, r: radiusAt(design.profile, y) }));
     this.headEl = root.querySelector('.head');
     this.reset();
   }
@@ -378,8 +411,11 @@ class Top {
 
     // Rim openness: the camera sits CAM_ANGLE above the rim plane; leaning
     // away opens the ellipse, leaning toward the viewer closes then flips it.
-    // Clamped, or a steep lean turns the flat head into a bulging disc.
-    const ratio = Math.min(2.1, Math.max(0.04, Math.abs(Math.sin(CAM_ANGLE + toward))) / CAM);
+    // How open the horizontal circles look from here. Signed, because past
+    // a steep lean you start seeing them from underneath and they bow the
+    // other way; clamped, or the flat head balloons into a disc.
+    const open = Math.max(-2.1, Math.min(2.1, Math.sin(CAM_ANGLE + toward) / CAM));
+    const ratio = Math.abs(open);
 
     // Rolling onto the belly lifts the axis off the tip and skids it sideways.
     const lift = toppling ? this.belly.r * 0.92 * Math.sin(this.theta) : 0;
@@ -400,13 +436,36 @@ class Top {
     // piece of detail worth keeping, because it is what sells the 3D.
     this.headEl.setAttribute('ry', (this.head[1] * CAM * ratio).toFixed(2));
 
-    // Spin cue: the highlight always crosses the same way round — it enters
-    // at one edge, sweeps across and reappears at the same edge, so the
-    // surface reads as turning rather than rocking side to side.
-    const amp = this.belly.r;
-    const u = ((this.spin / 6.283) % 1 + 1) % 1;
-    this.sweep.setAttribute('x', (amp * (2 * u - 1) - 7).toFixed(2));
-    this.sweep.setAttribute('opacity', (0.5 * Math.sin(Math.PI * u)).toFixed(3));
+
+    // Cut rings around the belly, bowing with the viewing angle. The near
+    // half of each circle sits lower on screen, which is the whole cue.
+    this.grooves.forEach((g, k) => {
+      const bow = g.r * CAM * open;
+      const x = g.r * 0.985;
+      const arc = (dy) =>
+        `M ${-x.toFixed(2)} ${(-g.y + dy).toFixed(2)} Q 0 ${(-g.y + dy + bow * 2).toFixed(2)} ${x.toFixed(2)} ${(-g.y + dy).toFixed(2)}`;
+      this.cuts[k].setAttribute('d', arc(0));
+      this.lips[k].setAttribute('d', arc(1.8));
+    });
+
+    // The mark rides the widest circle in one direction: it crosses the near
+    // face, slips off the edge and comes back at the same side. It sits on
+    // bare belly rather than on a cut ring, where the metal is brightest and
+    // a dark reflection has something to read against.
+    const g0 = this.belly;
+    const a = this.spin;
+    const near = Math.cos(a);
+    const gx = g0.r * 0.88 * Math.sin(a);
+    const gy = -g0.y + g0.r * CAM * open * near;
+    const vis = Math.max(0, near);
+    this.glint.setAttribute('rx', (g0.r * 0.34).toFixed(2));
+    this.glint.setAttribute('cx', gx.toFixed(2));
+    this.glint.setAttribute('cy', gy.toFixed(2));
+    this.glint.setAttribute('opacity', vis.toFixed(3));
+    this.glintLip.setAttribute('rx', (g0.r * 0.22).toFixed(2));
+    this.glintLip.setAttribute('cx', gx.toFixed(2));
+    this.glintLip.setAttribute('cy', (gy + 5.5).toFixed(2));
+    this.glintLip.setAttribute('opacity', (vis * 0.9).toFixed(3));
 
     // Cast shadow stretches out as the top goes over.
     const s = Math.sin(this.theta);
