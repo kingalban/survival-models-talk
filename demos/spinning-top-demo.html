@@ -180,11 +180,14 @@ const CHROME = {
   lip:  '#eef3f8',
 };
 
-/* Heads, as a fraction of the neck radius over the height of the head
-   section. Varying the head matters as much as varying the body — it is
-   the part you look at first. */
+/* Heads, as a fraction of the radius they sit on — the top of the grip if
+   there is one, the neck otherwise — over the height of the head section.
+   Varying the head matters as much as varying the body; it is the part you
+   look at first. */
 const HEADS = {
+  nub:   { frac: 0.90, pts: [[0, 1], [0.35, 1.5], [0.8, 1.55], [1, 1.3]] },
   stub:  { frac: 0.86, pts: [[0, 1], [0.45, 1.3], [0.85, 1.35], [1, 1.15]] },
+  knob:  { frac: 0.85, pts: [[0, 1], [0.3, 2.0], [0.75, 2.05], [1, 1.6]] },
   ball:  { frac: 0.78, pts: [[0, 1], [0.25, 1.75], [0.5, 2], [0.75, 1.75], [1, 0.9]] },
   disc:  { frac: 0.80, pts: [[0, 1], [0.25, 1.15], [0.45, 2.8], [0.82, 2.8], [1, 2.4]] },
   point: { frac: 0.84, pts: [[0, 1], [0.4, 0.72], [0.75, 0.4], [1, 0.12]] },
@@ -228,8 +231,9 @@ function makeProfile({ H, R, B, low = 1, up = 1.6, neck = 0.24, head = 'stub', g
       pts.push([bodyTop + (neckY - bodyTop) * t, neckR * (1 + (grip.taper - 1) * t)]);
     }
   }
+  const topR = neckR * (grip ? grip.taper : 1);
   for (const [t, f] of h.pts.slice(1)) {
-    pts.push([neckY + (H - neckY) * t, neckR * f]);
+    pts.push([neckY + (H - neckY) * t, topR * f]);
   }
   const gap = bodyTop - bellyY;
   return { profile: pts, grooves: [bellyY + gap * 0.18, bellyY + gap * 0.36] };
@@ -304,11 +308,53 @@ const HANDLED = [
     grip: { len: 0.24, taper: 0.80 } },
 ];
 
+/* A stack of Darts: the long tapering grip, finished with a small turned
+   knob instead of running out to a point. What varies is how long and how
+   sharply the grip closes, and how much of a head sits on the end of it. */
+const DARTS = [
+  { name: 'Pinhead', desc: 'The Dart, with a nub on the end',
+    H: 126, R: 34, B: 0.15, low: 0.85, up: 1.4, neck: 0.12, head: 'nub',
+    grip: { len: 0.44, taper: 0.70 } },
+  { name: 'Needle', desc: 'Longest, finest grip',
+    H: 132, R: 33, B: 0.13, low: 0.85, up: 1.4, neck: 0.11, head: 'nub',
+    grip: { len: 0.50, taper: 0.55 } },
+  { name: 'Tack', desc: 'Shorter grip, flat little head',
+    H: 120, R: 35, B: 0.16, low: 0.85, up: 1.4, neck: 0.13, head: 'stub',
+    grip: { len: 0.40, taper: 0.75 } },
+  { name: 'Stiletto', desc: 'Narrow body, steep taper',
+    H: 128, R: 31, B: 0.15, low: 0.90, up: 1.6, neck: 0.12, head: 'nub',
+    grip: { len: 0.46, taper: 0.60 } },
+  { name: 'Winder', desc: 'Parallel grip, proper knob',
+    H: 126, R: 34, B: 0.15, low: 0.85, up: 1.4, neck: 0.13, head: 'stub',
+    grip: { len: 0.44, taper: 0.85 } },
+  { name: 'Bobbin', desc: 'Heavier head, held-in grip',
+    H: 122, R: 35, B: 0.17, low: 0.80, up: 1.3, neck: 0.13, head: 'knob',
+    grip: { len: 0.42, taper: 0.85 } },
+  { name: 'Quill', desc: 'Wider body under a fine grip',
+    H: 130, R: 37, B: 0.14, low: 0.80, up: 1.5, neck: 0.11, head: 'nub',
+    grip: { len: 0.48, taper: 0.65 } },
+  { name: 'Spire', desc: 'Long grip closing hard',
+    H: 130, R: 34, B: 0.15, low: 0.85, up: 1.7, neck: 0.12, head: 'stub',
+    grip: { len: 0.46, taper: 0.55 } },
+  { name: 'Peg', desc: 'Stubby grip, big knob',
+    H: 116, R: 36, B: 0.18, low: 0.80, up: 1.2, neck: 0.14, head: 'knob',
+    grip: { len: 0.38, taper: 0.90 } },
+  { name: 'Skewer', desc: 'Slimmest body, longest grip',
+    H: 134, R: 30, B: 0.13, low: 0.90, up: 1.5, neck: 0.11, head: 'nub',
+    grip: { len: 0.50, taper: 0.70 } },
+  { name: 'Awl', desc: 'Broad body, short taper',
+    H: 122, R: 38, B: 0.16, low: 0.75, up: 1.4, neck: 0.12, head: 'stub',
+    grip: { len: 0.42, taper: 0.62 } },
+  { name: 'Pinnacle', desc: 'Tall grip carrying a bead',
+    H: 130, R: 34, B: 0.14, low: 0.85, up: 1.6, neck: 0.12, head: 'knob',
+    grip: { len: 0.46, taper: 0.70 } },
+];
+
 /* One knob for how large the tops sit in the frame: the profiles above are
    authored at a comfortable drawing scale, then scaled once here so every
    derived measurement (grooves, rim ellipse, lift, slide) follows along. */
 const SCALE = 1.3;
-for (const d of [...DESIGNS, ...HANDLED]) {
+for (const d of [...DESIGNS, ...HANDLED, ...DARTS]) {
   const { profile, grooves } = makeProfile(d);
   d.profile = profile.map(([y, r]) => [y * SCALE, r * SCALE]);
   d.grooves = grooves.map((y) => y * SCALE);
@@ -588,6 +634,7 @@ function gallery(title, note, designs) {
 
 gallery('Shapes', 'one finish, twelve profiles', DESIGNS);
 gallery('Button, with a handle', 'the squat body, twelve grips', HANDLED);
+gallery('Dart, with a knob', 'the long grip, twelve endings', DARTS);
 
 document.getElementById('playAll').addEventListener('click', () => tops.forEach((t) => t.fall()));
 document.getElementById('resetAll').addEventListener('click', () => tops.forEach((t) => t.reset()));
