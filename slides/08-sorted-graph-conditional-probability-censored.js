@@ -5,8 +5,9 @@
 // exact numbers, no restarting or recalculating here. Laid out like the
 // uncensored pair, but with the numbers now derived from the actual run
 // rather than hard-coded: each of the first three genuine falls is
-// labelled to the right of its bar with the level the curve has reached
-// after it — the same role the uncensored slide's 9/10, 8/10, 7/10 play,
+// labelled with the level the curve has reached after it, sitting just
+// above its bar and right-aligned so the label ends exactly where the
+// bar does — the same role the uncensored slide's 9/10, 8/10, 7/10 play,
 // but as a percentage, since with censoring in the mix it is no longer a
 // tidy k/10. The per-event conditional factors, (at risk − 1) / at risk
 // with the at-risk count already reduced by any censoring before it,
@@ -115,9 +116,12 @@ export default {
     // conditional factors are what the equations to the right multiply
     // together; each equation's result is the annotation beside its bar.
     const ANNOTATION_LIFT = 42;
+    // Anchored at the bar's end and pulled back by its own width (see the
+    // translateX below), so each label's right edge sits exactly where its
+    // bar stops rather than trailing off to the right of it.
     const annotations = falls.map((step) => ({
       html: percentHtml(step.after),
-      x: x(step.time) + 16,
+      x: x(step.time),
       y: step.row * ROW_HEIGHT + TOP_SIZE - BAR_HEIGHT / 2 - ANNOTATION_LIFT,
     }));
     // Every censoring before the third fall gets called out as the thing
@@ -141,7 +145,7 @@ export default {
           ${annotations
             .map(
               (a) => `
-            <div class="accent-yellow" style="position:absolute; left:${a.x}px; top:${a.y}px; font-size:1.1rem;">
+            <div class="accent-yellow" style="position:absolute; left:${a.x}px; top:${a.y}px; transform:translateX(-100%); font-size:1.1rem;">
               ${a.html}
             </div>`
             )
