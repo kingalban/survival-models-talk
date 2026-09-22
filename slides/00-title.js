@@ -8,7 +8,7 @@ export default {
   mount(stage) {
     stage.innerHTML = `
       <h1 class="slide-title" style="opacity:0; transform: translateY(12px);">
-        Intuitive Understanding for
+        Intuitive Understanding for<br />
         <span class="accent-blue">Survival Models</span>
       </h1>
     `;
