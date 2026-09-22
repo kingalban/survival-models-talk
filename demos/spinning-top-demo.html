@@ -69,6 +69,35 @@
     color: #2a1d06;
   }
 
+  h2.section {
+    width: 100%;
+    max-width: 1220px;
+    font-size: 13px;
+    font-weight: 600;
+    letter-spacing: 0.04em;
+    text-transform: uppercase;
+    color: #9aa0a8;
+    margin: 0 0 16px;
+    padding-bottom: 8px;
+    border-bottom: 1px solid #2f3339;
+  }
+  h2.section:not(:first-child) { margin-top: 44px; }
+  h2.section span {
+    text-transform: none;
+    letter-spacing: 0;
+    font-weight: 400;
+    color: #666c74;
+    margin-left: 8px;
+  }
+
+  #galleries {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    width: 100%;
+    max-width: 1220px;
+  }
+
   .grid {
     display: flex;
     gap: 18px;
@@ -118,16 +147,16 @@
 <body>
 
 <h1>Spinning top — totem shape study</h1>
-<p class="sub">Twelve turned profiles in one finish, so shape is the only thing that changes.
-A precession model drives the wobble, so the lean and the cut rings stay in sync.
-Click any top to topple just that one.</p>
+<p class="sub">Turned profiles in one finish, so shape is the only thing that changes. A precession
+model drives the wobble, and each top settles at the angle its own profile dictates —
+tip and side both on the table. Click any top to topple just that one.</p>
 
 <div class="controls">
   <button class="primary" id="playAll">▶ Let them fall</button>
   <button id="resetAll">↺ Spin again</button>
 </div>
 
-<div class="grid" id="grid"></div>
+<div id="galleries"></div>
 <p class="hint">Idle state is a steady precession, not a loop — no two tops are ever in step.</p>
 
 <script>
@@ -172,13 +201,17 @@ const HEADS = {
            into a shoulder, below 1 falls away immediately into a dome
      neck  neck radius as a fraction of R
      head  which of HEADS is turned on top
+     grip  optional { len, taper }: a straight handle spliced in between
+           the body and the head, `len` of the total height long, closing
+           to `taper` of the neck radius at the top
 
    The two cut rings always sit just above the belly, where the eye reads
    the widest part of the body. */
-function makeProfile({ H, R, B, low = 1, up = 1.6, neck = 0.24, head = 'stub' }) {
+function makeProfile({ H, R, B, low = 1, up = 1.6, neck = 0.24, head = 'stub', grip = null }) {
   const h = HEADS[head];
   const bellyY = H * B;
   const neckY = H * h.frac;
+  const bodyTop = neckY - (grip ? H * grip.len : 0);
   const neckR = R * neck;
   const pts = [];
   for (let i = 0; i <= 9; i++) {
@@ -187,12 +220,19 @@ function makeProfile({ H, R, B, low = 1, up = 1.6, neck = 0.24, head = 'stub' })
   }
   for (let i = 1; i <= 9; i++) {
     const t = i / 9;
-    pts.push([bellyY + (neckY - bellyY) * t, R + (neckR - R) * Math.pow(t, up)]);
+    pts.push([bellyY + (bodyTop - bellyY) * t, R + (neckR - R) * Math.pow(t, up)]);
+  }
+  if (grip) {
+    for (let i = 1; i <= 4; i++) {
+      const t = i / 4;
+      pts.push([bodyTop + (neckY - bodyTop) * t, neckR * (1 + (grip.taper - 1) * t)]);
+    }
   }
   for (const [t, f] of h.pts.slice(1)) {
     pts.push([neckY + (H - neckY) * t, neckR * f]);
   }
-  return { profile: pts, grooves: [bellyY + H * 0.05, bellyY + H * 0.105] };
+  const gap = bodyTop - bellyY;
+  return { profile: pts, grooves: [bellyY + gap * 0.18, bellyY + gap * 0.36] };
 }
 
 const DESIGNS = [
@@ -222,11 +262,53 @@ const DESIGNS = [
     H: 62,  R: 38, B: 0.42, low: 0.7,  up: 1.2,  neck: 0.26, head: 'stub' },
 ];
 
+/* A dozen in the Button range: the same squat, wide, barely-a-stem body,
+   each given a tall slender handle. What varies is how long and how thin
+   the handle is, how much body it rises out of, and what finishes it. */
+const HANDLED = [
+  { name: 'Handled button', desc: 'Button body, plain tall grip',
+    H: 108, R: 38, B: 0.19, low: 0.70, up: 1.3, neck: 0.16, head: 'stub',
+    grip: { len: 0.34, taper: 0.85 } },
+  { name: 'Long winder', desc: 'Grip half the whole height',
+    H: 122, R: 37, B: 0.16, low: 0.70, up: 1.2, neck: 0.13, head: 'stub',
+    grip: { len: 0.44, taper: 0.80 } },
+  { name: 'Dreidel', desc: 'Shouldered body, short thick grip',
+    H: 104, R: 40, B: 0.20, low: 0.90, up: 1.8, neck: 0.17, head: 'stub',
+    grip: { len: 0.28, taper: 0.92 } },
+  { name: 'Pin', desc: 'Thinnest grip, flat head',
+    H: 116, R: 35, B: 0.17, low: 0.70, up: 1.1, neck: 0.10, head: 'disc',
+    grip: { len: 0.40, taper: 0.95 } },
+  { name: 'Lollipop', desc: 'Slim grip under a ball',
+    H: 114, R: 36, B: 0.17, low: 0.75, up: 1.2, neck: 0.12, head: 'ball',
+    grip: { len: 0.38, taper: 0.90 } },
+  { name: 'Spool', desc: 'Stout grip, wide flat head',
+    H: 100, R: 39, B: 0.22, low: 0.80, up: 1.0, neck: 0.20, head: 'disc',
+    grip: { len: 0.26, taper: 1.0 } },
+  { name: 'Dart', desc: 'Grip tapering to a point',
+    H: 126, R: 34, B: 0.15, low: 0.85, up: 1.4, neck: 0.12, head: 'point',
+    grip: { len: 0.44, taper: 0.70 } },
+  { name: 'Chalice', desc: 'Bowl body, upright grip',
+    H: 106, R: 42, B: 0.24, low: 0.60, up: 0.7, neck: 0.17, head: 'stub',
+    grip: { len: 0.30, taper: 0.95 } },
+  { name: 'Baton', desc: 'Parallel grip, ball head',
+    H: 118, R: 33, B: 0.18, low: 0.75, up: 1.5, neck: 0.14, head: 'ball',
+    grip: { len: 0.40, taper: 1.0 } },
+  { name: 'Nail', desc: 'Widest body, finest grip',
+    H: 112, R: 43, B: 0.14, low: 0.65, up: 1.6, neck: 0.09, head: 'disc',
+    grip: { len: 0.38, taper: 1.0 } },
+  { name: 'Tee', desc: 'Even body and grip',
+    H: 108, R: 36, B: 0.20, low: 0.80, up: 1.0, neck: 0.15, head: 'disc',
+    grip: { len: 0.34, taper: 0.85 } },
+  { name: 'Thimble', desc: 'Hard shoulder, stubby grip',
+    H: 98,  R: 38, B: 0.24, low: 0.90, up: 2.0, neck: 0.17, head: 'stub',
+    grip: { len: 0.24, taper: 0.80 } },
+];
+
 /* One knob for how large the tops sit in the frame: the profiles above are
    authored at a comfortable drawing scale, then scaled once here so every
    derived measurement (grooves, rim ellipse, lift, slide) follows along. */
 const SCALE = 1.3;
-for (const d of DESIGNS) {
+for (const d of [...DESIGNS, ...HANDLED]) {
   const { profile, grooves } = makeProfile(d);
   d.profile = profile.map(([y, r]) => [y * SCALE, r * SCALE]);
   d.grooves = grooves.map((y) => y * SCALE);
@@ -477,21 +559,35 @@ class Top {
 
 /* --------------------------- wire it up --------------------------- */
 
-const grid = document.getElementById('grid');
 const tops = [];
+let uid = 0;
 
-DESIGNS.forEach((design, i) => {
-  const card = document.createElement('div');
-  card.className = 'card';
-  card.innerHTML = `
-    <div class="stage">${buildSVG(design, i)}</div>
-    <div class="label">${design.name}</div>
-    <div class="desc">${design.desc}</div>`;
-  grid.appendChild(card);
-  const top = new Top(card, design, (i + 1) / (DESIGNS.length + 1));
-  tops.push(top);
-  card.addEventListener('click', () => (top.mode === 'spin' ? top.fall() : top.reset()));
-});
+function gallery(title, note, designs) {
+  const host = document.getElementById('galleries');
+  const h = document.createElement('h2');
+  h.className = 'section';
+  h.innerHTML = `${title} <span>${note}</span>`;
+  const grid = document.createElement('div');
+  grid.className = 'grid';
+  host.append(h, grid);
+
+  designs.forEach((design, i) => {
+    const id = uid++;
+    const card = document.createElement('div');
+    card.className = 'card';
+    card.innerHTML = `
+      <div class="stage">${buildSVG(design, id)}</div>
+      <div class="label">${design.name}</div>
+      <div class="desc">${design.desc}</div>`;
+    grid.appendChild(card);
+    const top = new Top(card, design, (i + 1) / (designs.length + 1));
+    tops.push(top);
+    card.addEventListener('click', () => (top.mode === 'spin' ? top.fall() : top.reset()));
+  });
+}
+
+gallery('Shapes', 'one finish, twelve profiles', DESIGNS);
+gallery('Button, with a handle', 'the squat body, twelve grips', HANDLED);
 
 document.getElementById('playAll').addEventListener('click', () => tops.forEach((t) => t.fall()));
 document.getElementById('resetAll').addEventListener('click', () => tops.forEach((t) => t.reset()));
