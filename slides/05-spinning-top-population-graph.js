@@ -239,7 +239,12 @@ export default {
         .append("g")
         .attr("class", "axis")
         .attr("transform", `translate(${TRACK_LEFT},0)`)
-        .call(d3.axisLeft(yPercent).ticks(5).tickFormat(d3.format(".0%")));
+        .call(
+          d3
+            .axisLeft(yPercent)
+            .tickValues(d3.range(0, 1.001, 0.1))
+            .tickFormat(d3.format(".0%"))
+        );
 
       // The empirical survival function, drawn in the exact same pixel
       // space as the bars: the rows are evenly spaced, so each row

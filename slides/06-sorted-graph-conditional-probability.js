@@ -8,7 +8,9 @@
 // same ascending order (each term's denominator becomes the next term's
 // numerator) for visual symmetry: 8/9 × 9/10 = 8/10, and below it
 // 7/8 × 8/9 × 9/10 = 7/10 — the second the product of three fractions,
-// extending the same conditional-probability chain one event further.
+// extending the same conditional-probability chain one event further. The
+// equations start hidden under a plain greyed-out panel; clicking it
+// fades the panel away.
 // --- END SCRIPT ANNOTATION ---
 import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
@@ -85,23 +87,32 @@ export default {
             )
             .join("")}
         </div>
-        <div style="display:grid; grid-template-columns: repeat(7, auto); align-items:center; column-gap:0.7rem; row-gap:1.4rem; font-size:1.7rem;">
-          ${gridItem(fractionHtml(8, 9), 1, 3)}
-          ${gridItem("&times;", 1, 4)}
-          ${gridItem(fractionHtml(9, 10), 1, 5)}
-          ${gridItem("=", 1, 6)}
-          ${gridItem(fractionHtml(8, 10, "accent-yellow"), 1, 7)}
+        <div style="position:relative;">
+          <div style="display:grid; grid-template-columns: repeat(7, auto); align-items:center; column-gap:0.7rem; row-gap:1.4rem; font-size:1.7rem;">
+            ${gridItem(fractionHtml(8, 9), 1, 3)}
+            ${gridItem("&times;", 1, 4)}
+            ${gridItem(fractionHtml(9, 10), 1, 5)}
+            ${gridItem("=", 1, 6)}
+            ${gridItem(fractionHtml(8, 10, "accent-yellow"), 1, 7)}
 
-          ${gridItem(fractionHtml(7, 8), 2, 1)}
-          ${gridItem("&times;", 2, 2)}
-          ${gridItem(fractionHtml(8, 9), 2, 3)}
-          ${gridItem("&times;", 2, 4)}
-          ${gridItem(fractionHtml(9, 10), 2, 5)}
-          ${gridItem("=", 2, 6)}
-          ${gridItem(fractionHtml(7, 10, "accent-yellow"), 2, 7)}
+            ${gridItem(fractionHtml(7, 8), 2, 1)}
+            ${gridItem("&times;", 2, 2)}
+            ${gridItem(fractionHtml(8, 9), 2, 3)}
+            ${gridItem("&times;", 2, 4)}
+            ${gridItem(fractionHtml(9, 10), 2, 5)}
+            ${gridItem("=", 2, 6)}
+            ${gridItem(fractionHtml(7, 10, "accent-yellow"), 2, 7)}
+          </div>
+          <div id="equationCover" style="position:absolute; inset: -0.6rem; background: var(--bg-raised); border-radius: 10px; cursor:pointer; transition: opacity 300ms ease;"></div>
         </div>
       </div>
     `;
+
+    const equationCover = stage.querySelector("#equationCover");
+    equationCover.addEventListener("click", () => {
+      equationCover.style.opacity = "0";
+      setTimeout(() => equationCover.remove(), 300);
+    });
 
     const svg = d3.select(stage.querySelector("#chart"));
 
@@ -126,7 +137,12 @@ export default {
       .append("g")
       .attr("class", "axis")
       .attr("transform", `translate(${TRACK_LEFT},0)`)
-      .call(d3.axisLeft(yPercent).ticks(5).tickFormat(d3.format(".0%")));
+      .call(
+        d3
+          .axisLeft(yPercent)
+          .tickValues(d3.range(0, 1.001, 0.1))
+          .tickFormat(d3.format(".0%"))
+      );
 
     const survivalSteps = [
       [0, 0],
