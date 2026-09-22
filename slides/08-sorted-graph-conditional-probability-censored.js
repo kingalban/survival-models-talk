@@ -16,8 +16,12 @@
 // two stacked equations in ascending order — the second and third falls'
 // running products — with a line underneath noting that a paw print
 // never becomes a term in the product, it only shrinks the denominator
-// of every fall after it. The equations start hidden under the same
-// greyed-out reveal panel; clicking it fades the panel away.
+// of every fall after it. Underneath those, a small box with an orange
+// border holds the uncensored slide's own two-term equation, 8/9 × 9/10
+// = 8/10, with a small "without censoring" label along its bottom edge —
+// the same beat a few slides earlier, kept on screen to compare against.
+// The equations start hidden under the same greyed-out reveal panel;
+// clicking it fades the panel away.
 // --- END SCRIPT ANNOTATION ---
 import { createPawPrint } from "../artefacts/paw-print.js";
 import { getSpinningTopRun } from "../js/spinning-top-run.js";
@@ -164,6 +168,18 @@ export default {
             ${gridItem(fractionHtml(falls[0].atRisk - 1, falls[0].atRisk), 2, 5)}
             ${gridItem("=", 2, 6)}
             ${gridItem(`<span class="accent-yellow">${percentHtml(falls[2].after)}</span>`, 2, 7)}
+          </div>
+          <div style="margin-top:2rem; padding:1rem 1.4rem 0.5rem; border:2px solid var(--accent-orange); border-radius:10px; display:inline-block;">
+            <div style="display:grid; grid-template-columns: repeat(5, auto); align-items:center; column-gap:0.7rem; font-size:1.3rem; opacity:0.8;">
+              ${gridItem(fractionHtml(8, 9), 1, 1)}
+              ${gridItem("&times;", 1, 2)}
+              ${gridItem(fractionHtml(9, 10), 1, 3)}
+              ${gridItem("=", 1, 4)}
+              ${gridItem(fractionHtml(8, 10), 1, 5)}
+            </div>
+            <div class="accent-orange" style="margin-top:0.7rem; text-align:center; font-family:var(--font-mono); font-size:0.8rem; letter-spacing:0.04em;">
+              without censoring
+            </div>
           </div>
           <p style="max-width:26rem; margin-top:1.8rem; font-size:0.95rem; opacity:0.75;">
             A paw print never becomes a term in the product — it only shrinks

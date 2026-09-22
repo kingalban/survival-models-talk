@@ -8,6 +8,7 @@
   --accent-green: #6fd88a;
   --accent-red: #ff6e6e;
   --accent-purple: #b48ead;
+  --accent-orange: #f0913a;
   --slide-transition-ms: 500ms;
   --font-sans: "Helvetica Neue", Arial, sans-serif;
   --font-mono: "SF Mono", "Menlo", monospace;
@@ -176,6 +177,7 @@ html, body {
 .accent-green { color: var(--accent-green); }
 .accent-red { color: var(--accent-red); }
 .accent-purple { color: var(--accent-purple); }
+.accent-orange { color: var(--accent-orange); }
 
 /* --- HUD / navigation chrome --- */
 
