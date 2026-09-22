@@ -36,11 +36,18 @@ const MIN_TRIGGER_FRAC = 0.05;
 const MAX_TRIGGER_FRAC = 0.95;
 const STOLEN_COUNT = 3;
 
+// Mirrors the population slide's sampler, including its forced opening:
+// shortest observation a fall, second-shortest a censoring.
 function sampleFallback() {
-  const rows = Array.from({ length: N }, () => MIN_TRIGGER_FRAC + Math.random() * (MAX_TRIGGER_FRAC - MIN_TRIGGER_FRAC));
-  const stolen = new Set();
-  while (stolen.size < STOLEN_COUNT) stolen.add(Math.floor(Math.random() * N));
-  return rows.map((value, i) => ({ value, censored: stolen.has(i) }));
+  const values = Array.from({ length: N }, () => MIN_TRIGGER_FRAC + Math.random() * (MAX_TRIGGER_FRAC - MIN_TRIGGER_FRAC));
+  const byTime = values
+    .map((value, i) => ({ value, i }))
+    .sort((a, b) => a.value - b.value)
+    .map((r) => r.i);
+  const stolen = new Set([byTime[1]]);
+  const later = byTime.slice(2);
+  while (stolen.size < STOLEN_COUNT) stolen.add(later[Math.floor(Math.random() * later.length)]);
+  return values.map((value, i) => ({ value, censored: stolen.has(i) }));
 }
 
 function fractionHtml(num, den, extraClass = "") {

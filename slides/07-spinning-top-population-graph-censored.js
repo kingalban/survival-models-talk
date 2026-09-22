@@ -1,18 +1,22 @@
 // --- SCRIPT ANNOTATION [slide:spinning-top-population-graph-censored] ---
 // The same population-graph setup as before — spinning tops falling over
 // and drawing bars underneath them — but now, while a top is still
-// spinning, a random selection of them get stolen by a dog before they
-// fall: the top disappears and a paw print (the shared paw-print
-// artefact) stamps down frozen at that spot, its bar stopping there too,
-// in a distinct color from an actual fall. The rest still fall as
-// before. Once they've all been resolved, "Order" reorders the bars by
-// observed time (regardless of type) and cross-fades into a real D3
-// chart with a percentage axis, same as the previous pair — small paw
-// markers stay next to the censored bars. The step line here is a proper
-// Kaplan-Meier curve rather than the naive one-drop-per-row staircase:
-// it stays flat across a censored observation and takes a
-// correspondingly bigger step at the next real fall, because a stolen
-// top leaves the risk set without ever counting as a failure.
+// spinning, a selection of them get stolen by a dog before they fall:
+// the top disappears and a paw print (the shared paw-print artefact)
+// stamps down frozen at that spot, its bar stopping there too, in a
+// distinct color from an actual fall. The rest still fall as before. The
+// draw is forced at the start of the ordering so the talk can walk it
+// event by event: the shortest observation is always a fall and the
+// second-shortest is always a censoring, with the remaining stolen tops
+// picked at random from everything after those two. Once they've all
+// been resolved, "Order" reorders the bars by observed time (regardless
+// of type) and cross-fades into a real D3 chart with a percentage axis,
+// same as the previous pair — small paw markers stay next to the
+// censored bars. The step line here is a proper Kaplan-Meier curve
+// rather than the naive one-drop-per-row staircase: it stays flat across
+// a censored observation and takes a correspondingly bigger step at the
+// next real fall, because a stolen top leaves the risk set without ever
+// counting as a failure.
 // --- END SCRIPT ANNOTATION ---
 import { createSpinningTop } from "../artefacts/spinning-top.js";
 import { createPawPrint } from "../artefacts/paw-print.js";
@@ -129,9 +133,20 @@ export default {
       void track.offsetHeight;
       track.style.transition = `opacity ${GRAPH_CROSSFADE_MS}ms ease`;
 
-      const stolenIndices = new Set();
+      // The talk walks this run event by event — "the first top falls, then
+      // the dog steals one" — so the opening of the ordering is forced
+      // rather than left to chance: the shortest observation is always a
+      // fall and the second-shortest is always a censoring. The remaining
+      // stolen tops are picked at random from everything after those two.
+      const triggerFracs = Array.from({ length: N }, sampleTriggerFrac);
+      const byTime = triggerFracs
+        .map((frac, i) => ({ frac, i }))
+        .sort((a, b) => a.frac - b.frac)
+        .map((r) => r.i);
+      const stolenIndices = new Set([byTime[1]]);
+      const laterIndices = byTime.slice(2);
       while (stolenIndices.size < STOLEN_COUNT) {
-        stolenIndices.add(Math.floor(Math.random() * N));
+        stolenIndices.add(laterIndices[Math.floor(Math.random() * laterIndices.length)]);
       }
 
       rows = Array.from({ length: N }, (_, i) => {
@@ -164,7 +179,7 @@ export default {
           wrapper,
           bar,
           censored,
-          triggerFrac: sampleTriggerFrac(),
+          triggerFrac: triggerFracs[i],
           triggered: false,
         };
       });
