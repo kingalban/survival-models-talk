@@ -13,6 +13,7 @@ import spinningTopPopulationGraphCensored from "../slides/07-spinning-top-popula
 import sortedGraphConditionalProbabilityCensored from "../slides/08-sorted-graph-conditional-probability-censored.js";
 import saasKaplanMeierPayoff from "../slides/09-saas-kaplan-meier-payoff.js";
 import aboutAndHiring from "../slides/10-about-and-hiring.js";
+import dropCensoredUsers from "../slides/11-drop-censored-users.js";
 
 export const storyboard = [
   title,
@@ -26,4 +27,5 @@ export const storyboard = [
   sortedGraphConditionalProbabilityCensored,
   saasKaplanMeierPayoff,
   aboutAndHiring,
+  dropCensoredUsers,
 ];

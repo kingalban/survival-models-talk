@@ -107,3 +107,18 @@ export function naiveMedianTime(rows) {
   const mid = times.length >> 1;
   return times.length % 2 ? times[mid] : (times[mid - 1] + times[mid]) / 2;
 }
+
+// The other thing people reach for instead of Kaplan-Meier: throw the
+// censored customers away and compute the curve from the ones whose churn
+// you actually saw. It looks principled — no made-up churn dates — but the
+// customers you kept are exactly the ones who churned early enough to be
+// seen doing it, so the estimate comes out worse than the naive one.
+export function completeCaseSurvivalSteps(rows) {
+  const times = rows
+    .filter((r) => r.event)
+    .map((r) => r.time)
+    .sort((a, b) => a - b);
+  const steps = [[0, 1]];
+  times.forEach((t, i) => steps.push([t, 1 - (i + 1) / times.length]));
+  return steps;
+}
