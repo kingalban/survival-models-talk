@@ -1,13 +1,13 @@
 // --- SCRIPT ANNOTATION [slide:about-and-hiring] ---
-// The closing "who I am, and who we're hiring" slide: a hiring panel on
-// the left, built to the same width as the graph on the right and
-// separated from it by a thin vertical rule so the two halves read as
-// separate things of equal weight: a "we're hiring" label, the role
-// being advertised in large type — Applied AI Software Engineer,
-// "Softlandia, Finland. Full-stack role building production AI systems."
-// — and under it a scannable QR code beside a written-out URL. The two
-// point at different pages on purpose: the code goes straight to the
-// role's own posting,
+// The closing "who I am, and who we're hiring" slide: the tenure graph
+// on the left and a hiring panel on the right, built to the same width
+// as each other and separated by a thin vertical rule so the two halves
+// read as separate things of equal weight. The hiring side has: a "we're
+// hiring" label, the role being advertised in large type — Applied AI
+// Software Engineer, "Softlandia, Finland. Full-stack role building
+// production AI systems." — and under it a scannable QR code beside a
+// written-out URL. The two point at different pages on purpose: the code
+// goes straight to the role's own posting,
 // softlandia.com/open-jobs/applied-ai-software-engineer, while the
 // printed address stays the short softlandia.com/careers, which someone
 // can actually type from the back of a room. The code is generated ahead
@@ -91,8 +91,6 @@ export default {
 
     stage.innerHTML = `
       <div style="display:flex; align-items:center; justify-content:center; gap:3rem; flex-wrap:wrap;">
-        ${hiringPanel(qrCodes.careers)}
-        <div style="align-self:stretch; width:1px; flex:none; background:var(--fg-dim); opacity:0.3;"></div>
         <div style="width:${WIDTH}px; max-width:100%; text-align:center;">
           <p style="margin:0 0 0.15rem; font-size:1.05rem;">
             Have you seen this type of statistic?
@@ -120,6 +118,8 @@ export default {
             </div>
           </div>
         </div>
+        <div style="align-self:stretch; width:1px; flex:none; background:var(--fg-dim); opacity:0.3;"></div>
+        ${hiringPanel(qrCodes.careers)}
       </div>
       <div style="display:flex; align-items:baseline; justify-content:center; gap:1rem; margin-top:1.8rem; font-family:var(--font-mono); font-size:0.95rem;">
         <span>Alban King</span>
