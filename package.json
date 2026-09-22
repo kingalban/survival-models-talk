@@ -5,7 +5,8 @@
   "description": "Slide deck: an intuitive understanding of survival models",
   "scripts": {
     "build": "node tools/build-standalone.mjs",
-    "check": "node tools/check-script-sync.mjs"
+    "check": "node tools/check-script-sync.mjs",
+    "hooks": "git config core.hooksPath tools/git-hooks"
   },
   "devDependencies": {
     "d3": "^7.9.0",

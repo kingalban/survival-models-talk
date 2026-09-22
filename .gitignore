@@ -1,3 +1,5 @@
 .DS_Store
 node_modules/
-dist/
+dist/*
+# …except the standalone build, which every commit carries (see tools/git-hooks/pre-commit).
+!dist/deck.html

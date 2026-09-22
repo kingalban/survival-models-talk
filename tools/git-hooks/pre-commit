@@ -1,0 +1,30 @@
+#!/usr/bin/env bash
+# Keeps dist/deck.html in step with the sources it is built from: rebuilds the
+# standalone deck and stages it, so every commit that touches the deck carries
+# a matching one-file build.
+#
+# Register it once with:
+#   git config core.hooksPath tools/git-hooks
+#
+# Note it builds the *working tree*, not the index — with a partially staged
+# change the committed deck.html reflects your files as they are on disk.
+# Set SKIP_DECK_BUILD=1 to commit without rebuilding.
+set -euo pipefail
+
+if [ "${SKIP_DECK_BUILD:-}" = "1" ]; then
+  exit 0
+fi
+
+root="$(git rev-parse --show-toplevel)"
+cd "$root"
+
+# Only the files the bundle is made of are worth a rebuild; a commit that only
+# touches script.md or the README leaves deck.html byte-identical anyway.
+if ! git diff --cached --name-only | grep -qE '^(index\.html|css/|js/|slides/|artefacts/|package(-lock)?\.json|tools/build-standalone\.mjs)'; then
+  exit 0
+fi
+
+echo "pre-commit: rebuilding dist/deck.html…"
+./build.sh >/dev/null
+
+git add dist/deck.html
