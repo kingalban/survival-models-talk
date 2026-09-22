@@ -1,0 +1,186 @@
+:root {
+  --bg: #0b0e14;
+  --bg-raised: #131826;
+  --fg: #f2f4f8;
+  --fg-dim: #9aa4b8;
+  --accent-blue: #58c4dd;
+  --accent-yellow: #f9d949;
+  --accent-green: #6fd88a;
+  --accent-red: #ff6e6e;
+  --accent-purple: #b48ead;
+  --slide-transition-ms: 500ms;
+  --font-sans: "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "SF Mono", "Menlo", monospace;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html, body {
+  margin: 0;
+  padding: 0;
+  width: 100%;
+  height: 100%;
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  overflow: hidden;
+}
+
+#deck {
+  position: relative;
+  width: 100vw;
+  height: 100vh;
+}
+
+.stage {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  padding: 6vh 8vw;
+  opacity: 1;
+  transform: translateX(0);
+  transition:
+    opacity var(--slide-transition-ms) ease,
+    transform var(--slide-transition-ms) ease;
+}
+
+.stage.leaving-forward {
+  opacity: 0;
+  transform: translateX(-4vw);
+}
+
+.stage.leaving-back {
+  opacity: 0;
+  transform: translateX(4vw);
+}
+
+.stage.entering-forward {
+  opacity: 0;
+  transform: translateX(4vw);
+}
+
+.stage.entering-back {
+  opacity: 0;
+  transform: translateX(-4vw);
+}
+
+/* --- Common slide building blocks (slides opt into these) --- */
+
+.slide-title {
+  font-size: clamp(2.2rem, 5vw, 4.5rem);
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  margin: 0 0 1.2rem 0;
+  text-align: center;
+}
+
+.slide-subtitle {
+  font-size: clamp(1.1rem, 2.2vw, 1.6rem);
+  color: var(--fg-dim);
+  font-weight: 400;
+  margin: 0 0 2.5rem 0;
+  text-align: center;
+}
+
+.slide-body {
+  font-size: clamp(1rem, 1.8vw, 1.4rem);
+  line-height: 1.6;
+  max-width: 60ch;
+}
+
+.viz-panel {
+  width: 100%;
+  max-width: 960px;
+  height: min(56vh, 560px);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.accent-blue { color: var(--accent-blue); }
+.accent-yellow { color: var(--accent-yellow); }
+.accent-green { color: var(--accent-green); }
+.accent-red { color: var(--accent-red); }
+.accent-purple { color: var(--accent-purple); }
+
+/* --- HUD / navigation chrome --- */
+
+.hud {
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: 1.2rem;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  gap: 1rem;
+  z-index: 10;
+  pointer-events: none;
+}
+
+.hud > * {
+  pointer-events: auto;
+}
+
+.nav-btn {
+  background: var(--bg-raised);
+  color: var(--fg);
+  border: none;
+  border-radius: 999px;
+  width: 2.4rem;
+  height: 2.4rem;
+  font-size: 1.1rem;
+  cursor: pointer;
+  opacity: 0.55;
+  transition: opacity 150ms ease, transform 150ms ease;
+}
+
+.nav-btn:hover {
+  opacity: 1;
+  transform: scale(1.08);
+}
+
+.progress {
+  display: flex;
+  gap: 0.4rem;
+}
+
+.progress .dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 999px;
+  background: var(--fg-dim);
+  opacity: 0.4;
+  transition: opacity 150ms ease, background 150ms ease, width 150ms ease;
+}
+
+.progress .dot.active {
+  background: var(--accent-blue);
+  opacity: 1;
+  width: 1.2rem;
+}
+
+.counter {
+  font-family: var(--font-mono);
+  font-size: 0.8rem;
+  color: var(--fg-dim);
+  min-width: 3.5rem;
+  text-align: center;
+}
+
+/* D3 chart defaults so charts inherit the deck's palette instead of
+   browser-default black axes / serif labels */
+svg text {
+  font-family: var(--font-sans);
+  fill: var(--fg);
+}
+
+.axis path,
+.axis line {
+  stroke: var(--fg-dim);
+}
