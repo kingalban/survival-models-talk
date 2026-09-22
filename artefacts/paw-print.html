@@ -1,0 +1,84 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1" />
+<title>Paw print — artefact harness</title>
+<style>
+  :root { --bg: #15161a; --panel: #23252a; --text: #e4e6e9; --muted: #8b9098; --accent: #c69b6d; }
+  * { box-sizing: border-box; }
+  html, body { height: 100%; margin: 0; }
+  body {
+    background: radial-gradient(1100px 620px at 50% 18%, #2a2d34 0%, #1d1f24 45%, var(--bg) 100%);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    display: flex; flex-direction: column; align-items: center; padding: 56px 24px;
+  }
+  h1 { font-size: 20px; font-weight: 600; margin: 0 0 6px; }
+  p.sub { margin: 0 0 28px; color: var(--muted); font-size: 13.5px; text-align: center; max-width: 560px; line-height: 1.5; }
+  .controls { display: flex; gap: 12px; margin-bottom: 8px; }
+  button {
+    appearance: none; border: 1px solid #45484f; background: var(--panel); color: var(--text);
+    font-size: 13.5px; font-weight: 500; padding: 10px 20px; border-radius: 999px; cursor: pointer;
+  }
+  button:hover { border-color: var(--accent); }
+  button.primary { background: linear-gradient(180deg, #e0bd94, var(--accent)); border-color: #e0bd94; color: #2d1c0c; }
+  .state { font-family: ui-monospace, Menlo, monospace; font-size: 12px; color: var(--muted); height: 18px; }
+  .trail { display: flex; gap: 10px; align-items: center; margin-top: 8px; }
+</style>
+</head>
+<body>
+
+<h1>Paw print — artefact harness</h1>
+<p class="sub">The artefact renders itself and owns its own stamp animation; the buttons are
+ordinary page controls calling <code>paw.press()</code> and <code>paw.reset()</code>. The row
+underneath is a trail: alternating left and right paws, each leaning its own way.</p>
+
+<div class="controls">
+  <button class="primary" id="press">Press</button>
+  <button id="reset">Reset</button>
+</div>
+<div class="state" id="state"></div>
+<div id="single"></div>
+
+<div class="controls" style="margin-top:24px">
+  <button id="walk">Walk the trail</button>
+</div>
+<div class="trail" id="trail"></div>
+
+<script type="module">
+  import { createPawPrint } from "./paw-print.js";
+
+  const paw = createPawPrint({ size: 220 });
+  document.getElementById("single").appendChild(paw.el);
+
+  const label = document.getElementById("state");
+  document.getElementById("press").addEventListener("click", () => {
+    paw.press();
+    label.textContent = `state: ${paw.state}`;
+  });
+  document.getElementById("reset").addEventListener("click", () => {
+    paw.reset();
+    label.textContent = `state: ${paw.state}`;
+  });
+
+  const trail = document.getElementById("trail");
+  const many = Array.from({ length: 6 }, (_, i) => {
+    const right = i % 2 === 1;
+    const p = createPawPrint({
+      size: 78,
+      side: right ? "right" : "left",
+      angle: right ? 16 : -16,
+    });
+    p.el.style.transform = `translateY(${right ? 16 : -8}px)`;
+    trail.appendChild(p.el);
+    return p;
+  });
+
+  document.getElementById("walk").addEventListener("click", () => {
+    many.forEach((p, i) => setTimeout(() => p.press(), i * 220));
+  });
+</script>
+
+</body>
+</html>
