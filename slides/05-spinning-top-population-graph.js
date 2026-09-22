@@ -4,9 +4,21 @@
 // which becomes a graph. Every spinning top falls at some point before
 // reaching the right-hand side — its falling time is drawn from a
 // distribution bounded between the start and the end of the observation
-// window, so none of them are left still spinning at the edge.
+// window, so none of them are left still spinning at the edge. Once
+// they've all fallen, an "Order" button appears; clicking it fades the
+// tops out and, with no slide transition (this is still the same slide),
+// reorders the bars via a smooth transition: shortest at the top, longest
+// at the bottom, settling into a simple graph. Once the bars settle, they
+// cross-fade into the same data, same order, drawn as an actual chart with
+// our graphing library (D3) and a real axis, rather than the hand-built
+// div bars. Overlaid on top of the real chart, a dotted line traces the
+// empirical survival function — since the bars are already sorted with
+// even spacing, each row boundary is exactly one more event's worth of
+// drop. A percentage y-axis on the left (100% at the top, 0% at the
+// bottom) makes that scale explicit.
 // --- END SCRIPT ANNOTATION ---
 import { createSpinningTop } from "../artefacts/spinning-top.js";
+import * as d3 from "https://cdn.jsdelivr.net/npm/d3@7/+esm";
 
 const N = 10;
 const TOP_SIZE = 80;
@@ -23,6 +35,10 @@ const DURATION_MS = 9000;
 // not right at either edge.
 const MIN_FALL_FRAC = 0.05;
 const MAX_FALL_FRAC = 0.95;
+const FADE_MS = 600;
+const REORDER_MS = 900;
+const GRAPH_CROSSFADE_MS = 500;
+const BAR_HEIGHT = 24;
 
 function sampleBoundedFallFrac() {
   return MIN_FALL_FRAC + Math.random() * (MAX_FALL_FRAC - MIN_FALL_FRAC);
@@ -39,20 +55,29 @@ export default {
         Let's make a simple graph
       </h2>
       <div style="width: 100%; display: flex; flex-direction: column; align-items: center;">
-        <div id="track" style="position: relative; width: ${TRACK_TOTAL_WIDTH}px; max-width: 100%; height: ${rowsHeight + AXIS_HEIGHT}px;">
-          <svg width="${TRACK_TOTAL_WIDTH}" height="${AXIS_HEIGHT}"
-               style="position: absolute; left: 0; top: ${rowsHeight}px;">
-            <line x1="0" y1="10" x2="${axisLineEnd}" y2="10" stroke="white" stroke-width="2" />
-            <polygon points="${axisLineEnd},3 ${axisLineEnd + 14},10 ${axisLineEnd},17" fill="white" />
-            <text x="${axisLineEnd + 20}" y="15" fill="white" font-family="var(--font-mono)" font-size="14">time</text>
-          </svg>
+        <div style="position: relative; width: ${TRACK_TOTAL_WIDTH}px; max-width: 100%; height: ${rowsHeight + AXIS_HEIGHT}px;">
+          <div id="track" style="position: absolute; inset: 0; transition: opacity ${GRAPH_CROSSFADE_MS}ms ease;">
+            <svg width="${TRACK_TOTAL_WIDTH}" height="${AXIS_HEIGHT}"
+                 style="position: absolute; left: 0; top: ${rowsHeight}px;">
+              <line x1="0" y1="10" x2="${axisLineEnd}" y2="10" stroke="white" stroke-width="2" />
+              <polygon points="${axisLineEnd},3 ${axisLineEnd + 14},10 ${axisLineEnd},17" fill="white" />
+              <text x="${axisLineEnd + 20}" y="15" fill="white" font-family="var(--font-mono)" font-size="14">time</text>
+            </svg>
+          </div>
+          <svg id="realChart" width="${TRACK_TOTAL_WIDTH}" height="${rowsHeight + AXIS_HEIGHT}"
+               style="position: absolute; inset: 0; opacity: 0; transition: opacity ${GRAPH_CROSSFADE_MS}ms ease;"></svg>
         </div>
-        <button id="restartBtn" style="margin-top:1.5rem; font-family: var(--font-mono); color: var(--fg-dim); font-size: 0.85rem;">Restart</button>
+        <div style="display:flex; align-items:center; gap:1.2rem; margin-top:1.5rem;">
+          <button id="restartBtn" class="btn-subtle">Restart</button>
+          <button id="orderBtn" class="btn-subtle" disabled>Order</button>
+        </div>
       </div>
     `;
 
     const track = stage.querySelector("#track");
+    const realChart = d3.select(stage.querySelector("#realChart"));
     const restartBtn = stage.querySelector("#restartBtn");
+    const orderBtn = stage.querySelector("#orderBtn");
 
     const styles = getComputedStyle(document.documentElement);
     const blue = styles.getPropertyValue("--accent-blue").trim();
@@ -60,11 +85,16 @@ export default {
 
     let rows = [];
     let start = performance.now();
-    let rafId;
+    let rafId = null;
+    let timeouts = [];
 
-    function teardownRows() {
+    function teardown() {
+      timeouts.forEach(clearTimeout);
+      timeouts = [];
+      if (rafId) cancelAnimationFrame(rafId);
+      rafId = null;
       rows.forEach((row) => {
-        row.top.destroy();
+        if (row.top) row.top.destroy();
         row.wrapper.remove();
         row.bar.remove();
       });
@@ -72,7 +102,14 @@ export default {
     }
 
     function setup() {
-      teardownRows();
+      teardown();
+      orderBtn.disabled = true;
+      track.style.transition = "none";
+      track.style.opacity = "1";
+      realChart.style("opacity", 0);
+      realChart.selectAll("*").remove();
+      void track.offsetHeight; // commit the transition:none before restoring it below
+      track.style.transition = `opacity ${GRAPH_CROSSFADE_MS}ms ease`;
 
       rows = Array.from({ length: N }, (_, i) => {
         const rowTop = i * ROW_HEIGHT;
@@ -107,6 +144,7 @@ export default {
         };
       });
       start = performance.now();
+      rafId = requestAnimationFrame(render);
     }
 
     function render(t) {
@@ -127,17 +165,114 @@ export default {
         }
       });
 
-      rafId = requestAnimationFrame(render);
+      if (p < 1) {
+        rafId = requestAnimationFrame(render);
+      } else {
+        rafId = null;
+        orderBtn.disabled = false;
+      }
+    }
+
+    function fadeOutTops() {
+      orderBtn.disabled = true;
+      rows.forEach((row) => {
+        row.wrapper.style.transition = `opacity ${FADE_MS}ms ease`;
+        row.wrapper.style.opacity = "0";
+      });
+      timeouts.push(
+        setTimeout(() => {
+          rows.forEach((row) => {
+            row.top.destroy();
+            row.top = null;
+            row.wrapper.remove();
+          });
+          reorderBars();
+        }, FADE_MS)
+      );
+    }
+
+    function reorderBars() {
+      const sorted = [...rows].sort((a, b) => a.fallFrac - b.fallFrac);
+      sorted.forEach((row, i) => {
+        row.bar.style.transition = `top ${REORDER_MS}ms ease`;
+        row.bar.style.top = `${i * ROW_HEIGHT + TOP_SIZE - 6}px`;
+      });
+      timeouts.push(
+        setTimeout(
+          () => swapToRealGraph(sorted.map((row) => row.fallFrac)),
+          REORDER_MS + 300
+        )
+      );
+    }
+
+    // Same data, same order, same left-to-right footprint as the hand-built
+    // bars — now drawn as an actual D3 chart with a real axis, cross-faded
+    // in over the div-based version rather than replacing it abruptly.
+    function swapToRealGraph(sortedFallFracs) {
+      const seconds = sortedFallFracs.map((f) => f * (DURATION_MS / 1000));
+      const x = d3
+        .scaleLinear()
+        .domain([0, DURATION_MS / 1000])
+        .range([TRACK_LEFT, TRACK_LEFT + TRACK_WIDTH]);
+
+      realChart
+        .selectAll("rect")
+        .data(seconds)
+        .join("rect")
+        .attr("x", TRACK_LEFT)
+        .attr("y", (_, i) => i * ROW_HEIGHT + TOP_SIZE - BAR_HEIGHT)
+        .attr("width", (d) => x(d) - TRACK_LEFT)
+        .attr("height", BAR_HEIGHT)
+        .attr("rx", 4)
+        .attr("fill", red);
+
+      realChart
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(0,${rowsHeight})`)
+        .call(d3.axisBottom(x).ticks(5).tickFormat((d) => `${d}s`));
+
+      // Same row-boundary-to-fraction mapping the survival line below uses,
+      // just surfaced as an axis: row 0's top is 100%, row N's bottom is 0%.
+      const yPercent = d3.scaleLinear().domain([1, 0]).range([0, N * ROW_HEIGHT]);
+      realChart
+        .append("g")
+        .attr("class", "axis")
+        .attr("transform", `translate(${TRACK_LEFT},0)`)
+        .call(d3.axisLeft(yPercent).ticks(5).tickFormat(d3.format(".0%")));
+
+      // The empirical survival function, drawn in the exact same pixel
+      // space as the bars: the rows are evenly spaced, so each row
+      // boundary already represents exactly one more event's worth (1/N)
+      // of drop — no separate probability axis needed.
+      const survivalSteps = [
+        [0, 0],
+        ...seconds.map((t, i) => [t, (i + 1) * ROW_HEIGHT]),
+        [DURATION_MS / 1000, N * ROW_HEIGHT],
+      ];
+      const survivalLine = d3
+        .line()
+        .x((d) => x(d[0]))
+        .y((d) => d[1])
+        .curve(d3.curveStepAfter);
+
+      realChart
+        .append("path")
+        .datum(survivalSteps)
+        .attr("fill", "none")
+        .attr("stroke", "white")
+        .attr("stroke-width", 2.5)
+        .attr("stroke-dasharray", "3 6")
+        .attr("d", survivalLine);
+
+      track.style.opacity = "0";
+      realChart.style("opacity", 1);
     }
 
     setup();
-    rafId = requestAnimationFrame(render);
-
     restartBtn.addEventListener("click", setup);
+    orderBtn.addEventListener("click", fadeOutTops);
 
-    return () => {
-      cancelAnimationFrame(rafId);
-      teardownRows();
-    };
+    return teardown;
   },
 };

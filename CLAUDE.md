@@ -77,3 +77,13 @@ script section rewritten, one engine tweak) rather than batching unrelated
 changes into one commit. This is a storyboard under active iteration — small
 commits make it cheap to rearrange, revert, or diff a single slide later.
 
+
+## Standalone build
+
+`npm run build` writes `dist/deck.html`: the whole deck flattened into one
+file that opens from `file://` with no server and no network. It bundles the
+slide modules with esbuild, inlines `css/deck.css`, and swaps the CDN `d3`
+import for the copy in `node_modules` — so a slide that needs a new library
+must have it added as a devDependency (and mapped in
+`tools/build-standalone.mjs` if it is imported by URL), or the build fails
+loudly rather than shipping a file that phones home.

@@ -8,8 +8,11 @@ import naiveSurvivalGraph from "../slides/02-naive-survival-graph.js";
 import spinningTopSingle from "../slides/03-spinning-top-single.js";
 import spinningTopPopulationStanding from "../slides/04-spinning-top-population-standing.js";
 import spinningTopPopulationGraph from "../slides/05-spinning-top-population-graph.js";
-import staircaseBuildupPlaceholder from "../slides/06-staircase-buildup-placeholder.js";
-import censoringAndWrapupPlaceholder from "../slides/07-censoring-and-wrapup-placeholder.js";
+import sortedGraphConditionalProbability from "../slides/06-sorted-graph-conditional-probability.js";
+import spinningTopPopulationGraphCensored from "../slides/07-spinning-top-population-graph-censored.js";
+import spinningTopSortedBarsCensored from "../slides/08-spinning-top-sorted-bars-censored.js";
+import survivalGraphBuildupPlaceholder from "../slides/09-survival-graph-buildup-placeholder.js";
+import censoringAndWrapupPlaceholder from "../slides/10-censoring-and-wrapup-placeholder.js";
 
 export const storyboard = [
   title,
@@ -18,6 +21,9 @@ export const storyboard = [
   spinningTopSingle,
   spinningTopPopulationStanding,
   spinningTopPopulationGraph,
-  staircaseBuildupPlaceholder,
+  sortedGraphConditionalProbability,
+  spinningTopPopulationGraphCensored,
+  spinningTopSortedBarsCensored,
+  survivalGraphBuildupPlaceholder,
   censoringAndWrapupPlaceholder,
 ];
