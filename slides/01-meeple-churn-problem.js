@@ -12,6 +12,11 @@ const WIDTH = 860;
 const HEIGHT = 460;
 const CHURN_LINE_Y = 260;
 const SPAWN_INTERVAL_MS = 500;
+const MEAN_LIFESPAN_MS = 3500;
+
+function sampleExponential(meanMs) {
+  return -Math.log(1 - Math.random()) * meanMs;
+}
 
 function drawMeeple(ctx, x, y, color, scale = 1) {
   ctx.save();
@@ -72,8 +77,9 @@ export default {
         x: 40 + Math.random() * (WIDTH - 80),
         bobPhase: Math.random() * Math.PI * 2,
         subscribedAt: t,
-        // subscription length: mostly a few seconds, a long tail of "sticky" ones
-        lifespan: 1500 + Math.random() * Math.random() * 9000,
+        // subscription length ~ Exponential: most churn quickly, a long
+        // tail of "sticky" ones stick around far longer.
+        lifespan: sampleExponential(MEAN_LIFESPAN_MS),
         state: "subscribed",
         fallY: 90,
         churnedX: null,

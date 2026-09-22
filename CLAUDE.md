@@ -59,6 +59,17 @@ If you change what a slide/layer does in a way that no longer matches its
 `[...]` instruction, update `script.md` first, then the embedded annotation
 comment to match — re-run the sync check afterward either way.
 
+## Artefacts
+
+`artefacts/` holds self-contained visual objects that slides import rather
+than re-implement — each one a module exporting a factory that returns an
+object with an `.el` to append and methods the page calls to drive it
+(`artefacts/spinning-top.js` is the pattern: `createSpinningTop()` →
+`{ el, state, fall(), reset(), pause(), play(), destroy() }`). They own
+their own rendering and animation loop and know nothing about the deck.
+Each has a sibling `.html` harness for working on it in isolation; those
+use ES modules, so open them over a local server, not `file://`.
+
 ## Commit often
 
 Commit after each meaningfully complete step (one slide implemented, one

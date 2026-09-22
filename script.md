@@ -60,8 +60,14 @@ This is a common type of problem. We have some process, something which has a st
 
 ## The spinning-top example
 
-{slide:spinning-top-population}
-[A slide showing a single simple animation of a spinning top, silver, sleek, and rotating occasionally, jiggling, and then eventually falling on its side and stopping moving. Pressing Next shows the spinning top resetting, shrinking, and many more identical spinning tops starting next to it in a column.  Some of them end at a random time but not all. As they spin they progress to the right, drawing a bar along underneath them, which will later become a graph. Spinning tops that do not end within the time frame reach the right-hand side of the graph area and simply continue spinning there.  (paramaterised and resetable via ui buttons)]
+{slide:spinning-top-single}
+[A simple animation of a spinning top, silver, sleek, and rotating occasionally, jiggling, and then eventually falling on its side and stopping moving. (A nicer artefact for this will be generated and dropped in later — this is a stand-in.)]
+
+{slide:spinning-top-population-standing}
+[The spinning top resets, shrinks, and many more identical spinning tops start next to it in a column. Some of them fall over at a random time within the observation window; the rest stay standing (still spinning) at the end of it. No graph yet — just the population.]
+
+{slide:spinning-top-population-graph}
+[The same group of spinning tops as the previous slide, but now as they spin they progress to the right, drawing a bar along underneath them, which becomes a graph. Spinning tops that do not fall within the time frame reach the right-hand side of the graph area and simply continue spinning there. (parameterised and resettable via UI buttons)]
 <This is clunky and needs to be reworded to make it obvious that we are taking a sample only for a strict amount of time. >
 Before we jump into understanding these, let's think of a really simple example. Let's say I have a set of spinning tops I'm testing on my table, and what I care about is whether each one falls over while I'm watching it. For each one I spin, I measure if it does or doesn't fall over. I can find, at the end of spinning all of them, that maybe 7 out of 10 did in the minute I tested each one. What's the chance that any one would fall over? It's 7/10. It's a 70% chance.
 
