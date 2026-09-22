@@ -32,7 +32,12 @@ html, body {
 #deck {
   position: relative;
   width: 100vw;
+  /* 100vh is the viewport with mobile browser chrome hidden, so the bottom of
+     the deck — where the nav buttons live — ends up under the URL bar, with
+     no way to scroll it into view. dvh tracks the chrome; vh stays as the
+     fallback for browsers that predate it. Identical on desktop. */
   height: 100vh;
+  height: 100dvh;
 }
 
 .stage {
@@ -185,7 +190,8 @@ html, body {
   position: absolute;
   left: 0;
   right: 0;
-  bottom: 1.2rem;
+  /* Clears the home indicator on notched phones; 0 everywhere else. */
+  bottom: calc(1.2rem + env(safe-area-inset-bottom, 0px));
   display: flex;
   align-items: center;
   justify-content: center;
