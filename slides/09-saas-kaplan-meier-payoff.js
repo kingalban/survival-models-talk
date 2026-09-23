@@ -104,16 +104,32 @@ export default {
       .attr("d", step)
       .attr("opacity", 0);
 
+    // A legend row is a dot in its curve's colour followed by the label.
+    // The label stays right-aligned to the same edge as before, so the dot
+    // hangs off its left — which means measuring the text to place it.
     function legend(text, color, row) {
-      return g
+      const item = g.append("g");
+      const yPos = 16 + row * 18;
+      const label = item
         .append("text")
         .attr("x", innerW - 10)
-        .attr("y", 16 + row * 18)
+        .attr("y", yPos)
         .attr("text-anchor", "end")
         .attr("fill", color)
         .attr("font-family", "var(--font-mono)")
         .attr("font-size", 12)
         .text(text);
+      // getComputedTextLength needs a laid-out element; if the slide is
+      // still mid-transition it can come back 0, so fall back to the
+      // monospace advance width (~0.6em at 12px).
+      const w = label.node().getComputedTextLength() || text.length * 7.2;
+      item
+        .append("circle")
+        .attr("cx", innerW - 10 - w - 9)
+        .attr("cy", yPos - 4)
+        .attr("r", 3.5)
+        .attr("fill", color);
+      return item;
     }
 
     legend("naive (biased)", "var(--accent-red)", 0);
